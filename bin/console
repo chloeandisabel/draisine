@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "draisine"
+require "pry"
+
+Pry.start
