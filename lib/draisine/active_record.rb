@@ -1,6 +1,3 @@
-require "active_support/core_ext"
-require "active_support/concern"
-
 module Draisine
   ALL_OPS = [:outbound_create, :outbound_update, :outbound_delete,
              :inbound_update, :inbound_delete]
@@ -13,6 +10,7 @@ module Draisine
       self.salesforce_synced_attributes = options.fetch(:synced_attributes, []).map(&:to_s)
       self.salesforce_mapping = options.fetch(:mapping, {}).map {|k,v| [k.to_s, v.to_s] }.to_h
       self.salesforce_ops = Set.new(options.fetch(:operations, ALL_OPS))
+      self.salesforce_sync_mode = options.fetch(:sync, true)
 
       options.fetch(:array_attributes, []).each do |attr|
         salesforce_array_setter(attr)
@@ -29,6 +27,7 @@ module Draisine
       attr_accessor :salesforce_object_name
       attr_accessor :salesforce_synced_attributes
       attr_accessor :salesforce_ops
+      attr_accessor :salesforce_sync_mode
 
       ALL_OPS.each do |op|
         define_method("salesforce_#{op}?") do
@@ -36,7 +35,19 @@ module Draisine
         end
       end
 
-      def salesforce_inbound_create_or_update(attributes)
+      def salesforce_enqueue_or_run(job_class, *args, &block)
+        if salesforce_sync_mode
+          job_class.perform_now(*args, &block)
+        else
+          job_class.perform_later(*args, &block)
+        end
+      end
+
+      def salesforce_on_inbound_update(attributes)
+        salesforce_enqueue_or_run(InboundUpdateJob, self, attributes)
+      end
+
+      def salesforce_inbound_update(attributes)
         if salesforce_inbound_update?
           attributes = attributes.with_indifferent_access
           id = attributes.fetch('Id')
@@ -60,17 +71,9 @@ module Draisine
     attr_accessor :salesforce_skip_sync
 
     included do
-      before_create :salesforce_on_create
-      before_update :salesforce_on_update
-      before_destroy :salesforce_on_delete
-    end
-
-    [:create, :update, :delete].each do |op|
-      define_method "salesforce_on_#{op}" do
-        if !salesforce_skip_sync && self.class.__send__("salesforce_outbound_#{op}?")
-          __send__("salesforce_outbound_#{op}")
-        end
-      end
+      after_create :salesforce_on_create
+      after_update :salesforce_on_update
+      after_destroy :salesforce_on_delete
     end
 
     def salesforce_inbound_update(attributes)
@@ -82,14 +85,36 @@ module Draisine
       save!
     end
 
-    def salesforce_outbound_create
-      response = salesforce_syncer.create(salesforce_attributes.compact)
-      self.salesforce_id = response['id']
+    def salesforce_on_create
+      if !salesforce_skip_sync && self.class.salesforce_outbound_create?
+        self.class.salesforce_enqueue_or_run(OutboundCreateJob, self)
+      end
     end
 
-    def salesforce_outbound_update
-      updated_attributes = salesforce_attributes.slice(*changed)
+    def salesforce_outbound_create
+      response = salesforce_syncer.create(salesforce_attributes.compact)
+      self.salesforce_id = response.fetch('id')
+      save! if persisted?
+    end
+
+    def salesforce_on_update
+      if !salesforce_skip_sync && self.class.salesforce_outbound_update?
+        self.class.salesforce_enqueue_or_run(
+          OutboundUpdateJob,
+          self,
+          salesforce_attributes.slice(*changed)
+        )
+      end
+    end
+
+    def salesforce_outbound_update(updated_attributes)
       salesforce_syncer.update(salesforce_id, updated_attributes)
+    end
+
+    def salesforce_on_delete
+      if !salesforce_skip_sync && self.class.salesforce_outbound_delete?
+        self.class.salesforce_enqueue_or_run(OutboundDeleteJob, self)
+      end
     end
 
     def salesforce_outbound_delete

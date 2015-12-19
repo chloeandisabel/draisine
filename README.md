@@ -52,6 +52,10 @@ List of all Salesforce attributes that are required to be synced. If your Active
 
 #### mapping (Hash[String => String])
 
+#### sync (Boolean, default: true)
+
+When set to true, all jobs are launched inline (via `#perform_now`), otherwise, they are set to perform as soon as workers get to them (`#perform_later`).
+
 #### operations (Array[Symbol])
 
 List of operations that must be synced with Salesforce.
@@ -68,9 +72,10 @@ Available operations: `[:outbound_create, :outbound_update, :outbound_delete, :i
 
 * ~~ActiveRecord plugin and hooks~~
 * ~~ActiveRecord -> Salesforce synchronization (outbound creates, updates, deletes)~~
-* ActiveJob delayed jobs
+* ~~ActiveJob delayed jobs~~
 * Salesforce -> ActiveRecord inbound updates
 * Salesforce -> ActiveRecord inbound deletes
+* Error handling inside delayed jobs
 * Migration generator
 * Use restforce instead of / alongside of databasedotcom
 

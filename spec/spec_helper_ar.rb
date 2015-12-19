@@ -22,7 +22,8 @@ end
 class Lead < ActiveRecord::Base
   salesforce_syncable synced_attributes: [:FirstName, :LastName, :CustomAttribute__c],
     mapping: {:CustomAttribute__c => :custom_attribute},
-    operations: Draisine::ALL_OPS
+    operations: Draisine::ALL_OPS,
+    sync: true
 
   def self.create_without_callbacks!(attrs)
     model = new(attrs)
@@ -34,7 +35,10 @@ class Lead < ActiveRecord::Base
 end
 
 RSpec.configure do |c|
-  c.before(:each, :model) do |example|
-    Lead.delete_all
+  c.around(:each) do |example|
+    ActiveRecord::Base.transaction do
+      example.run
+      raise ActiveRecord::Rollback
+    end
   end
 end

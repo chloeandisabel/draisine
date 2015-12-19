@@ -8,7 +8,7 @@ describe Draisine::ActiveRecordPlugin, :model do
     allow(model).to receive(:salesforce_syncer) { syncer }
   end
 
-  describe ".salesforce_inbound_create_or_update" do
+  describe ".salesforce_inbound_update" do
     let(:inbound_attrs) {
       {
         "Id" => "A001",
@@ -20,7 +20,7 @@ describe Draisine::ActiveRecordPlugin, :model do
 
     it "creates a record if it doesn't exist yet" do
       expect {
-        model.salesforce_inbound_create_or_update(inbound_attrs)
+        model.salesforce_inbound_update(inbound_attrs)
       }.to change { model.count }.by(1)
       lead = model.find_by_salesforce_id('A001')
       expect(lead.FirstName).to eq 'John'
@@ -31,7 +31,7 @@ describe Draisine::ActiveRecordPlugin, :model do
     it "updates a record if it already exists" do
       lead = model.create_without_callbacks!(salesforce_id: 'A001', FirstName: 'Arnold', LastName: 'Schwartzenegger')
       expect {
-        model.salesforce_inbound_create_or_update(inbound_attrs)
+        model.salesforce_inbound_update(inbound_attrs)
       }.not_to change { model.count }
       lead.reload
       expect(lead.FirstName).to eq 'John'
@@ -40,7 +40,7 @@ describe Draisine::ActiveRecordPlugin, :model do
 
     it "nulls missing attribute values" do
       lead = model.create_without_callbacks!(salesforce_id: 'A001', FirstName: 'John')
-      model.salesforce_inbound_create_or_update({ 'Id' => 'A001' })
+      model.salesforce_inbound_update({ 'Id' => 'A001' })
       lead.reload
       expect(lead.FirstName).to be_nil
     end
@@ -73,7 +73,7 @@ describe Draisine::ActiveRecordPlugin, :model do
       subject.salesforce_outbound_create
     end
 
-    it "assigns salesforce_id from response" do
+    it "assigns salesforce_id from response in the before_create hook" do
       allow(syncer).to receive(:create).and_return(created_sf_response)
       subject.save!
       subject.reload
@@ -89,15 +89,10 @@ describe Draisine::ActiveRecordPlugin, :model do
       expect(syncer).to receive(:update).with('A000', {
         'FirstName' => 'John'
       })
-      subject.salesforce_outbound_update
-    end
 
-    it "includes blanked fields when they are changed" do
-      subject.FirstName = nil
-      expect(syncer).to receive(:update).with('A000', {
-        'FirstName' => nil
+      subject.salesforce_outbound_update({
+        'FirstName' => 'John'
       })
-      subject.salesforce_outbound_update
     end
   end
 
