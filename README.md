@@ -38,13 +38,19 @@ Draisine adds a `salesforce_syncable` macro to ActiveRecord models, used like th
 class Lead < Salesforce::Model
   salesforce_syncable synced_attributes: [:FirstName, :LastName, ...],
     mapping: { 'FirstName' => 'first_name', 'LastName' => 'last_name' },
-    operations: [:outbound_create, :outbound_update, :outbound_delete, :inbound_update, :inbound_delete]
+    operations: [:outbound_create, :outbound_update, :outbound_delete, :inbound_update, :inbound_delete],
+    salesforce_object_name: 'Lead',
+    sync: true
 end
 ```
 
 Your model class must have `salesforce_id` string column for everything to work.
 
 ### Available settings
+
+#### salesforce_object_name (String)
+
+Self-explanatory. Defaults to the class name.
 
 #### synced_attributes (Array[Symbol|String], required)
 
