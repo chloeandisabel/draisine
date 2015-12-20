@@ -46,6 +46,21 @@ describe Draisine::ActiveRecordPlugin, :model do
     end
   end
 
+  describe ".salesforce_inbound_delete" do
+    it "deletes a model with matching salesforce id" do
+      model.create_without_callbacks!(salesforce_id: 'A001')
+      expect {
+        model.salesforce_inbound_delete('A001')
+      }.to change { model.count }.by(-1)
+    end
+
+    it "doesn't trigger after destroy callback" do
+      model.create_without_callbacks!(salesforce_id: 'A001')
+      expect(syncer).not_to receive(:delete)
+      model.salesforce_inbound_delete('A001')
+    end
+  end
+
   describe "#salesforce_outbound_create" do
     subject { model.new(FirstName: 'Mark', custom_attribute: '322') }
     let(:created_sf_response) {

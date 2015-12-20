@@ -15,6 +15,8 @@ module Draisine
       options.fetch(:array_attributes, []).each do |attr|
         salesforce_array_setter(attr)
       end
+
+      Draisine.registry.register(self, salesforce_object_name)
     end
   end
 
@@ -58,8 +60,17 @@ module Draisine
         end
       end
 
-      def salesforce_inbound_delete(id)
+      def salesforce_on_inbound_delete(salesforce_id)
+        salesforce_enqueue_or_run(InboundDeleteJob, self, salesforce_id)
+      end
+
+      def salesforce_inbound_delete(salesforce_id)
         if salesforce_inbound_delete?
+          record = find_by(salesforce_id: salesforce_id)
+          if record
+            record.salesforce_skip_sync = true
+            record.destroy
+          end
         end
       end
 

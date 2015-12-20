@@ -79,8 +79,8 @@ Available operations: `[:outbound_create, :outbound_update, :outbound_delete, :i
 * ~~ActiveRecord plugin and hooks~~
 * ~~ActiveRecord -> Salesforce synchronization (outbound creates, updates, deletes)~~
 * ~~ActiveJob delayed jobs~~
-* Salesforce -> ActiveRecord inbound updates
-* Salesforce -> ActiveRecord inbound deletes
+* ~~Salesforce -> ActiveRecord inbound updates~~
+* ~~Salesforce -> ActiveRecord inbound deletes~~
 * Error handling inside delayed jobs
 * Migration generator
 * Use restforce instead of / alongside of databasedotcom
