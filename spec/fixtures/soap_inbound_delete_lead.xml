@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+ <soapenv:Body>
+  <notifications xmlns="http://soap.sforce.com/2005/09/outbound">
+   <OrganizationId>00D7A0000008ibKUAQ</OrganizationId>
+   <ActionId>04k7A0000008OTmQAM</ActionId>
+   <SessionId xsi:nil="true"/>
+   <EnterpriseUrl>https://cs44.salesforce.com/services/Soap/c/35.0/00D7A0000008ibK</EnterpriseUrl>
+   <PartnerUrl>https://cs44.salesforce.com/services/Soap/u/35.0/00D7A0000008ibK</PartnerUrl>
+   <Notification>
+    <Id>04l7A000000RVvHQAW</Id>
+    <sObject xsi:type="sf:Deleted_Object__c" xmlns:sf="urn:sobject.enterprise.soap.sforce.com">
+     <sf:Id>a1P7A0000008nuRUAQ</sf:Id>
+     <sf:Object_Id__c>00Q7A000001DUEsUAO</sf:Object_Id__c>
+     <sf:Object_Type__c>Lead</sf:Object_Type__c>
+    </sObject>
+   </Notification>
+  </notifications>
+ </soapenv:Body>
+</soapenv:Envelope>
