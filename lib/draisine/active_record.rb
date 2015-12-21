@@ -46,7 +46,7 @@ module Draisine
       end
 
       def salesforce_on_inbound_update(attributes)
-        salesforce_enqueue_or_run(InboundUpdateJob, self, attributes)
+        salesforce_enqueue_or_run(InboundUpdateJob, self.name, attributes)
       end
 
       def salesforce_inbound_update(attributes)
@@ -61,7 +61,7 @@ module Draisine
       end
 
       def salesforce_on_inbound_delete(salesforce_id)
-        salesforce_enqueue_or_run(InboundDeleteJob, self, salesforce_id)
+        salesforce_enqueue_or_run(InboundDeleteJob, self.name, salesforce_id)
       end
 
       def salesforce_inbound_delete(salesforce_id)
@@ -130,6 +130,14 @@ module Draisine
 
     def salesforce_outbound_delete
       salesforce_syncer.delete(salesforce_id)
+    end
+
+    def salesforce_skipping_sync(&block)
+      old_sync = self.salesforce_skip_sync
+      self.salesforce_skip_sync = true
+      instance_eval(&block)
+    ensure
+      self.salesforce_skip_sync = old_sync
     end
 
     protected

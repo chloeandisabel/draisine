@@ -1,6 +1,7 @@
 module Draisine
   class InboundDeleteJob < ActiveJob::Base
-    def perform(klass, salesforce_id)
+    def perform(class_name, salesforce_id)
+      klass = class_name.constantize
       klass.salesforce_inbound_delete(salesforce_id)
     end
   end
