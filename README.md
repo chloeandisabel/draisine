@@ -72,6 +72,9 @@ Available operations: `[:outbound_create, :outbound_update, :outbound_delete, :i
 
 ## Handling inbound deletes
 
+## Error handling
+
+You can setup handling most transient errors using `Draisine.job_error_handler = proc {|exception, job, arguments| }` setter. It will be called every time a job, such as `InboundUpdateJob` fails with any error.
 
 ## Roadmap
 
@@ -81,7 +84,7 @@ Available operations: `[:outbound_create, :outbound_update, :outbound_delete, :i
 * ~~ActiveJob delayed jobs~~
 * ~~Salesforce -> ActiveRecord inbound updates~~
 * ~~Salesforce -> ActiveRecord inbound deletes~~
-* Error handling inside delayed jobs
+* ~~Error handling inside delayed jobs~~
 * Migration generator
 * Use restforce instead of / alongside of databasedotcom
 

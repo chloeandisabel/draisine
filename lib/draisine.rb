@@ -9,6 +9,7 @@ require "draisine/array_setter"
 require "draisine/attributes_mapping"
 require "draisine/registry"
 
+require "draisine/jobs/job_base"
 require "draisine/jobs/inbound_update_job"
 require "draisine/jobs/inbound_delete_job"
 require "draisine/jobs/outbound_create_job"

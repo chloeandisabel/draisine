@@ -31,4 +31,12 @@ EOM
     end
     @organization_id = id
   end
+
+  def self.job_error_handler
+    @job_error_handler ||= proc { }
+  end
+
+  def self.job_error_handler=(handler)
+    @job_error_handler = handler
+  end
 end
