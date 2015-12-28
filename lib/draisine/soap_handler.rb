@@ -43,7 +43,16 @@ EOF
       end
     end
 
+    def assert_valid_organization_id!(message)
+      unless diggable_to?(message, ['Envelope', 'Body', 'notifications', 'OrganizationId']) &&
+             message['Envelope']['Body']['notifications']['OrganizationId'] == Draisine.organization_id
+
+        fail ArgumentError, "invalid organization id in the inbound message from salesforce"
+      end
+    end
+
     def assert_valid_message!(message)
+      assert_valid_organization_id!(message)
       unless diggable_to?(message, ['Envelope', 'Body', 'notifications', 'Notification'])
         fail ArgumentError, "malformed xml inbound message from salesforce"
       end

@@ -16,12 +16,14 @@ EOM
   end
 
   def self.organization_id
-    fail <<-EOM
+    unless @organization_id
+      fail <<-EOM
 Draisine.organization_id was not properly set up.
 You can use Draisine.organization_id= method to set it.
 See https://cloudjedi.wordpress.com/no-fuss-salesforce-id-converter/ if
 you need to convert your 15-char id into 18-char.
 EOM
+    end
     @organization_id
   end
 

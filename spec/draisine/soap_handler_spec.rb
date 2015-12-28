@@ -1,6 +1,10 @@
 require "spec_helper_ar"
 
 describe Draisine::SoapHandler do
+  before do
+    Draisine.organization_id = 'TEST12345678901234'
+  end
+
   describe "#update" do
     let(:example_params) { Hash.from_xml(File.read('spec/fixtures/soap_inbound_update_lead.xml')) }
     subject { described_class.new }
@@ -26,6 +30,11 @@ describe Draisine::SoapHandler do
         subject.update({})
       }.to raise_error(ArgumentError)
     end
+
+    it "checks organization id on the message" do
+      expect(Draisine).to receive(:organization_id).and_return('mismatching_id')
+      expect { subject.update(example_params) }.to raise_error(ArgumentError)
+    end
   end
 
   describe "#delete" do
@@ -40,6 +49,11 @@ describe Draisine::SoapHandler do
 
     it "doesn't raise error if it couldn't find a record" do
       expect { subject.delete(example_params) }.not_to raise_error
+    end
+
+    it "checks organization id on the message" do
+      expect(Draisine).to receive(:organization_id).and_return('mismatching_id')
+      expect { subject.delete(example_params) }.to raise_error(ArgumentError)
     end
   end
 end
