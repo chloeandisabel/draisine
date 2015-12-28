@@ -140,13 +140,13 @@ module Draisine
       self.salesforce_skip_sync = old_sync
     end
 
-    protected
-
     def salesforce_attributes
       salesforce_reverse_mapped_attributes(attributes)
         .with_indifferent_access
         .slice(*self.class.salesforce_synced_attributes)
     end
+
+    protected
 
     def salesforce_syncer
       self.class.salesforce_syncer
