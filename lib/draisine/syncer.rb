@@ -2,11 +2,11 @@ module Draisine
   # Wrapper around salesforce client implementation
   # Might have pluggable adapters in the future.
   class Syncer
-    attr_reader :salesforce_object_name, :client
+    attr_reader :salesforce_object_name
 
     def initialize(salesforce_object_name, client = nil)
       @salesforce_object_name ||= salesforce_object_name
-      @client = client || Draisine.salesforce_client
+      @client = client
     end
 
     def get(id)
@@ -31,6 +31,10 @@ module Draisine
     end
 
     protected
+
+    def client
+      @client || Draisine.salesforce_client
+    end
 
     def build_sobject_url(id)
       url = "/services/data/v#{client.version}/sobjects/#{salesforce_object_name}"
