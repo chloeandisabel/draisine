@@ -49,13 +49,13 @@ module Draisine
         salesforce_enqueue_or_run(InboundUpdateJob, self.name, attributes)
       end
 
-      def salesforce_inbound_update(attributes)
+      def salesforce_inbound_update(attributes, add_blanks = true)
         if salesforce_inbound_update?
           attributes = attributes.with_indifferent_access
           id = attributes.fetch('Id')
           (find_by(salesforce_id: id) || new).tap do |m|
             m.salesforce_id = id
-            m.salesforce_inbound_update(attributes)
+            m.salesforce_inbound_update(attributes, add_blanks)
           end
         end
       end
@@ -75,7 +75,7 @@ module Draisine
       end
 
       def salesforce_syncer
-        @salesforce_syncer ||= Syncer.new(salesforce_object_name)
+        @salesforce_syncer || Syncer.new(salesforce_object_name)
       end
     end
 
@@ -87,12 +87,14 @@ module Draisine
       after_destroy :salesforce_on_delete
     end
 
-    def salesforce_inbound_update(attributes)
+    def salesforce_inbound_update(attributes, add_blanks = true)
       self.salesforce_skip_sync = true
-      attributes_with_blanks = self.class.salesforce_synced_attributes
-        .map {|attr| [attr, attributes[attr]] }
-        .to_h
-      salesforce_assign_attributes(attributes_with_blanks)
+      if add_blanks
+        attributes = self.class.salesforce_synced_attributes
+          .map {|attr| [attr, attributes[attr]] }
+          .to_h
+      end
+      salesforce_assign_attributes(attributes)
       save!
     end
 

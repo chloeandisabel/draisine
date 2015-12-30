@@ -44,6 +44,13 @@ describe Draisine::ActiveRecordPlugin, :model do
       lead.reload
       expect(lead.FirstName).to be_nil
     end
+
+    it "doesn't null missing attributes values if add_blanks arg is false" do
+      lead = model.create_without_callbacks!(salesforce_id: 'A001', FirstName: 'John')
+      model.salesforce_inbound_update({ 'Id' => 'A001' }, false)
+      lead.reload
+      expect(lead.FirstName).to eq('John')
+    end
   end
 
   describe ".salesforce_inbound_delete" do
