@@ -8,8 +8,8 @@ require "ext/databasedotcom"
 
 require "draisine/version"
 require "draisine/setup"
-require "draisine/array_setter"
-require "draisine/attributes_mapping"
+require "draisine/concerns/array_setter"
+require "draisine/concerns/attributes_mapping"
 require "draisine/registry"
 
 require "draisine/jobs/job_base"

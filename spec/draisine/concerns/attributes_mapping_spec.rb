@@ -1,13 +1,13 @@
 require "spec_helper"
 
-describe Draisine::AttributesMapping do
+describe Draisine::Concerns::AttributesMapping do
   let(:described_class) do
     Class.new do
       attr_accessor :first_name
       attr_accessor :last_name
       attr_accessor :CustomAttribute__c
 
-      include Draisine::AttributesMapping
+      include Draisine::Concerns::AttributesMapping
       self.salesforce_mapping = {
         'FirstName' => 'first_name',
         'LastName' => 'last_name'

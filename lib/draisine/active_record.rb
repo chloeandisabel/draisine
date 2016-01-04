@@ -24,8 +24,8 @@ module Draisine
 
   module ActiveRecordPlugin
     extend ActiveSupport::Concern
-    include Draisine::ArraySetter
-    include Draisine::AttributesMapping
+    include Draisine::Concerns::ArraySetter
+    include Draisine::Concerns::AttributesMapping
 
     module ClassMethods
       attr_accessor :salesforce_object_name

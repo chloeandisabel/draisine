@@ -1,9 +1,9 @@
 require "spec_helper"
 
-describe Draisine::ArraySetter do
+describe Draisine::Concerns::ArraySetter do
   let(:described_class) do
     Class.new do
-      include Draisine::ArraySetter
+      include Draisine::Concerns::ArraySetter
       attr_accessor :items
       salesforce_array_setter :items
     end
