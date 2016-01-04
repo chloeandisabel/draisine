@@ -3,6 +3,9 @@ require "active_support/core_ext"
 require "active_support/concern"
 require "active_job/base"
 
+require "databasedotcom"
+require "ext/databasedotcom"
+
 require "draisine/version"
 require "draisine/setup"
 require "draisine/array_setter"
@@ -16,6 +19,7 @@ require "draisine/jobs/outbound_create_job"
 require "draisine/jobs/outbound_update_job"
 require "draisine/jobs/outbound_delete_job"
 
+require "draisine/auditor"
 require "draisine/syncer"
 require "draisine/active_record"
 require "draisine/soap_handler"

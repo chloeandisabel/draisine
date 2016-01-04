@@ -46,7 +46,7 @@ end
 
 Your model class must have `salesforce_id` string column for everything to work.
 
-### Available settings
+### Available options
 
 #### salesforce_object_name (String)
 
@@ -67,6 +67,8 @@ When set to true, all jobs are launched inline (via `#perform_now`), otherwise, 
 List of operations that must be synced with Salesforce.
 
 Available operations: `[:outbound_create, :outbound_update, :outbound_delete, :inbound_update, :inbound_delete]`
+
+#### non_audited_attributes (Array[Symbol|String])
 
 ## Setting up outbound messages
 
