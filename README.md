@@ -85,7 +85,9 @@ You can setup handling most transient errors using `Draisine.job_error_handler =
 * ~~Salesforce -> ActiveRecord inbound updates~~
 * ~~Salesforce -> ActiveRecord inbound deletes~~
 * ~~Error handling inside delayed jobs~~
+* Auditing
 * Migration generator
+* Conflict resolution
 * Use restforce instead of / alongside of databasedotcom
 
 

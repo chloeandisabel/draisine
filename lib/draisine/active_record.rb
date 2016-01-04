@@ -11,6 +11,8 @@ module Draisine
       self.salesforce_mapping = options.fetch(:mapping, {}).map {|k,v| [k.to_s, v.to_s] }.to_h
       self.salesforce_ops = Set.new(options.fetch(:operations, ALL_OPS))
       self.salesforce_sync_mode = options.fetch(:sync, true)
+      non_audited_attrs = options.fetch(:non_audited_attributes, []).map(&:to_s)
+      self.salesforce_audited_attributes = salesforce_synced_attributes - non_audited_attrs
 
       options.fetch(:array_attributes, []).each do |attr|
         salesforce_array_setter(attr)
@@ -28,6 +30,7 @@ module Draisine
     module ClassMethods
       attr_accessor :salesforce_object_name
       attr_accessor :salesforce_synced_attributes
+      attr_accessor :salesforce_audited_attributes
       attr_accessor :salesforce_ops
       attr_accessor :salesforce_sync_mode
 
