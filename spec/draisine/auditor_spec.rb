@@ -4,10 +4,10 @@ describe Draisine::Auditor do
   include_context "Salesforce stubs"
   let(:sf_client) { double(:salesforce_client) }
 
-  subject { described_class.new(Lead, sf_client) }
+  subject { described_class.new(Lead) }
 
   before(:each) do
-    # salesforce_stub_out_leads!
+    allow(Draisine).to receive(:salesforce_client).and_return(sf_client)
     allow(Lead).to receive(:salesforce_attributes).and_return(['FirstName'])
     allow(Lead).to receive(:salesforce_audited_attributes).and_return(['FirstName'])
     Lead.create_without_callbacks!(salesforce_id: 'A000', FirstName: 'Alice')

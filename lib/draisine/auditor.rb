@@ -42,15 +42,14 @@ module Draisine
       end
     end
 
-    def self.run(model_class, client, start_date = Time.now.beginning_of_day, end_date = Time.now)
-      new(model_class, client).run(start_date, end_date)
+    def self.run(model_class, start_date = Time.now.beginning_of_day, end_date = Time.now)
+      new(model_class).run(start_date, end_date)
     end
 
-    attr_reader :model_class, :client, :salesforce_object_name,
+    attr_reader :model_class, :salesforce_object_name,
                 :start_date, :end_date, :result
-    def initialize(model_class, client)
+    def initialize(model_class)
       @model_class = model_class
-      @client = client
       @salesforce_object_name = model_class.salesforce_object_name
     end
 
@@ -103,6 +102,10 @@ module Draisine
             id, local_record, remote_record, diff)
         end
       end
+    end
+
+    def client
+      Draisine.salesforce_client
     end
 
     protected
