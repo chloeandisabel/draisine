@@ -30,8 +30,8 @@ shared_context "Salesforce stubs" do
   def salesforce_stub_out_leads!
     leads = []
     allow(Draisine).to receive(:salesforce_client).and_return(sf_client)
-    allow(Salesforce::Lead).to receive(:salesforce_syncer).and_return(Draisine::Syncer.new(Salesforce::Lead, sf_client))
-    allow(Salesforce::Lead).to receive(:salesforce_synced_attributes).and_return(['FirstName', 'LastName'])
+    allow(Lead).to receive(:salesforce_syncer).and_return(Draisine::Syncer.new(Lead, sf_client))
+    allow(Lead).to receive(:salesforce_synced_attributes).and_return(['FirstName', 'LastName'])
     allow(sf_client).to receive(:materialize) {
       MaterializedModel.new(lead_type_map)
     }
