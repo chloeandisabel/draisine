@@ -53,6 +53,7 @@ describe Draisine::Auditor do
       discrepancy = result.discrepancies[0]
       expect(discrepancy.type).to eq(:remote_delete_kept_locally)
       expect(discrepancy.salesforce_id).to eq('D000')
+      expect(discrepancy.local_attrs).to be_present
     end
 
     it "returns success when records updated in salesforce are updated to same values locally" do

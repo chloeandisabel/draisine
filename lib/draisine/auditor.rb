@@ -72,9 +72,11 @@ module Draisine
         salesforce_object_name, start_date, end_date).
         fetch('deletedRecords').
         map {|r| r['id']}
-      ghost_ids = model_class.where(salesforce_id: deleted_ids).pluck(:salesforce_id)
-      ghost_ids.each do |ghost_id|
-        result.discrepancy(:remote_delete_kept_locally, ghost_id)
+      ghost_models = model_class.where(salesforce_id: deleted_ids).all
+      ghost_models.each do |ghost_model|
+        result.discrepancy(:remote_delete_kept_locally,
+          ghost_model.salesforce_id,
+          ghost_model.attributes)
       end
     end
 
