@@ -41,4 +41,22 @@ EOM
   def self.job_error_handler=(handler)
     @job_error_handler = handler
   end
+
+  # https://help.salesforce.com/apex/HTViewSolution?language=en_US&id=000003652
+  def self.allowed_ip_ranges
+    @allowed_ip_ranges ||= [
+      '96.43.144.0/20',
+      '136.146.210.8/15',
+      '204.14.232.0/21',
+      '85.222.128.0/19',
+      '185.79.140.0/22',
+      '182.50.76.0/22',
+      '202.129.242.0/23',
+      '127.0.0.1'
+    ]
+  end
+
+  def self.allowed_ip_ranges=(ranges)
+    @allowed_ip_ranges = ranges
+  end
 end
