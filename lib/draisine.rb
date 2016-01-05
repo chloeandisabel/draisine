@@ -25,6 +25,7 @@ require "draisine/auditor"
 require "draisine/conflict_detector"
 require "draisine/conflict_resolver"
 require "draisine/syncer"
+require "draisine/type_mapper"
 require "draisine/active_record"
 require "draisine/soap_handler"
 
