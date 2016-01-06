@@ -35,11 +35,19 @@ EOM
   end
 
   def self.job_error_handler
-    @job_error_handler ||= proc { }
+    @job_error_handler ||= proc {|error, job_instance, args| }
   end
 
   def self.job_error_handler=(handler)
     @job_error_handler = handler
+  end
+
+  def self.job_callback
+    @job_callback ||= proc {|job_instance, salesforce_id, args| }
+  end
+
+  def self.job_callback=(callback)
+    @job_callback = callback
   end
 
   # https://help.salesforce.com/apex/HTViewSolution?language=en_US&id=000003652
