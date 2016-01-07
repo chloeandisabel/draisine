@@ -9,9 +9,10 @@ module Draisine
       @client = client
     end
 
-    def get(id)
+    def get(id, options = {})
       raise ArgumentError unless id.present?
-      response = client.http_get(build_sobject_url(id))
+      response = client.http_get(build_sobject_url(id), options)
+      JSON.parse(response.body)
     end
 
     def create(attrs)
@@ -28,6 +29,12 @@ module Draisine
     def delete(id)
       raise ArgumentError unless id.present?
       client.http_delete(build_sobject_url(id))
+    end
+
+    def get_system_modstamp(id)
+      raise ArgumentError unless id.present?
+      time = get(id, fields: "SystemModstamp")['SystemModstamp']
+      time && Time.parse(time)
     end
 
     protected

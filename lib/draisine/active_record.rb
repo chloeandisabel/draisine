@@ -91,6 +91,7 @@ module Draisine
     end
 
     def salesforce_inbound_update(attributes, add_blanks = true)
+      return unless salesforce_fresh_update?(attributes)
       self.salesforce_skip_sync = true
       if add_blanks
         attributes = self.class.salesforce_synced_attributes
@@ -124,7 +125,11 @@ module Draisine
     end
 
     def salesforce_outbound_update(updated_attributes)
-      salesforce_syncer.update(salesforce_id, updated_attributes)
+      self.class.transaction do
+        salesforce_syncer.update(salesforce_id, updated_attributes)
+        timestamp = salesforce_syncer.get_system_modstamp(salesforce_id)
+        update_column(:salesforce_updated_at, timestamp)
+      end
     end
 
     def salesforce_on_delete
@@ -152,6 +157,11 @@ module Draisine
     end
 
     protected
+
+    def salesforce_fresh_update?(attributes)
+      !salesforce_updated_at || !attributes['SystemModstamp'] ||
+        Time.parse(attributes['SystemModstamp']) > salesforce_updated_at
+    end
 
     def salesforce_syncer
       self.class.salesforce_syncer

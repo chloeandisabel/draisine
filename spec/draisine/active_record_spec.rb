@@ -3,6 +3,7 @@ require "spec_helper_ar"
 describe Draisine::ActiveRecordPlugin, :model do
   let(:model) { Lead }
   let(:syncer) { instance_double(Draisine::Syncer).as_null_object }
+  let(:system_modstamp) { Time.current }
 
   before do
     allow(model).to receive(:salesforce_syncer) { syncer }
@@ -14,7 +15,8 @@ describe Draisine::ActiveRecordPlugin, :model do
         "Id" => "A001",
         "FirstName" => "John",
         "LastName" => "Doe",
-        "CustomAttribute__c" => "32876"
+        "CustomAttribute__c" => "32876",
+        "SystemModstamp" => system_modstamp.iso8601
       }
     }
 
@@ -36,6 +38,13 @@ describe Draisine::ActiveRecordPlugin, :model do
       lead.reload
       expect(lead.FirstName).to eq 'John'
       expect(lead.LastName).to eq 'Doe'
+    end
+
+    it "doesn't update the record if system modstamp on record is less than or equal to salesforce_updated_at" do
+      lead = model.create_without_callbacks!(salesforce_id: 'A001', FirstName: 'Jack', salesforce_updated_at: system_modstamp)
+      model.salesforce_inbound_update(inbound_attrs)
+      lead.reload
+      expect(lead.FirstName).to eq 'Jack'
     end
 
     it "nulls missing attribute values" do
@@ -106,6 +115,11 @@ describe Draisine::ActiveRecordPlugin, :model do
   describe "#salesforce_outbound_update" do
     subject { model.create_without_callbacks!(FirstName: 'Mark', salesforce_id: 'A000') }
 
+    before do
+      allow(syncer).to receive(:update)
+      allow(syncer).to receive(:get_system_modstamp).and_return(Time.current)
+    end
+
     it "sends an updated attribute hash to the syncer" do
       subject.FirstName = 'John'
       expect(syncer).to receive(:update).with('A000', {
@@ -115,6 +129,14 @@ describe Draisine::ActiveRecordPlugin, :model do
       subject.salesforce_outbound_update({
         'FirstName' => 'John'
       })
+    end
+
+    it "updates #salesforce_updated_at field with updated system_modstamp" do
+      subject.FirstName = 'John'
+      time = 1.minute.since
+      expect(syncer).to receive(:get_system_modstamp).with('A000').and_return(time)
+      subject.salesforce_outbound_update({ 'FirstName' => 'John' })
+      expect(subject.reload.salesforce_updated_at).to eq(time)
     end
   end
 

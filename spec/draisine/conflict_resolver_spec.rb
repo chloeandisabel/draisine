@@ -88,6 +88,7 @@ describe Draisine::ConflictResolver do
   describe "#remote_push" do
     it "pushes the local record attributes into salesforce" do
       expect(sf_client).to receive(:http_patch)
+      allow(sf_client).to receive(:http_get).and_return(double(body: { SystemModstamp: Time.now }.to_json))
       subject.remote_push
     end
   end
@@ -104,6 +105,8 @@ describe Draisine::ConflictResolver do
   describe "#merge" do
     before do
       allow(sf_client).to receive(:http_patch)
+      allow(sf_client).to receive(:http_get).with(kind_of(String), fields: "SystemModstamp")
+        .and_return(double(body: { SystemModstamp: Time.now }.to_json))
     end
 
     it "pushes local attrs to merge" do
