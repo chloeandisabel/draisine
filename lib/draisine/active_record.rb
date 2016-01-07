@@ -73,12 +73,17 @@ module Draisine
           if record
             record.salesforce_skip_sync = true
             record.destroy
+            salesforce_callback(:inbound_delete, salesforce_id)
           end
         end
       end
 
       def salesforce_syncer
         @salesforce_syncer || Syncer.new(salesforce_object_name)
+      end
+
+      def salesforce_callback(type, salesforce_id, options = {})
+        Draisine.sync_callback.call(type, salesforce_id, options)
       end
     end
 
@@ -99,6 +104,7 @@ module Draisine
           .to_h
       end
       salesforce_assign_attributes(attributes)
+      salesforce_callback(persisted? ? :inbound_update : :inbound_create, attributes: attributes)
       save!
     end
 
@@ -109,9 +115,11 @@ module Draisine
     end
 
     def salesforce_outbound_create
-      response = salesforce_syncer.create(salesforce_attributes.compact)
+      attrs = salesforce_attributes.compact
+      response = salesforce_syncer.create(attrs)
       self.salesforce_id = response.fetch('id')
-      save! if persisted?
+      salesforce_skipping_sync { save! } if persisted?
+      salesforce_callback(:outbound_create, attributes: attrs)
     end
 
     def salesforce_on_update
@@ -129,6 +137,7 @@ module Draisine
         salesforce_syncer.update(salesforce_id, updated_attributes)
         timestamp = salesforce_syncer.get_system_modstamp(salesforce_id)
         update_column(:salesforce_updated_at, timestamp)
+        salesforce_callback(:outbound_update, attributes: updated_attributes)
       end
     end
 
@@ -140,6 +149,7 @@ module Draisine
 
     def salesforce_outbound_delete
       salesforce_syncer.delete(salesforce_id)
+      salesforce_callback(:outbound_delete)
     end
 
     def salesforce_skipping_sync(&block)
@@ -154,6 +164,10 @@ module Draisine
       salesforce_reverse_mapped_attributes(attributes)
         .with_indifferent_access
         .slice(*self.class.salesforce_synced_attributes)
+    end
+
+    def salesforce_callback(type, options = {})
+      self.class.salesforce_callback(type, salesforce_id, options)
     end
 
     protected

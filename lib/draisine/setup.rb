@@ -42,12 +42,12 @@ EOM
     @job_error_handler = handler
   end
 
-  def self.job_callback
-    @job_callback ||= proc {|job_instance, salesforce_id, args| }
+  def self.sync_callback
+    @sync_callback ||= proc {|type, salesforce_id, options| }
   end
 
-  def self.job_callback=(callback)
-    @job_callback = callback
+  def self.sync_callback=(callback)
+    @sync_callback = callback
   end
 
   # https://help.salesforce.com/apex/HTViewSolution?language=en_US&id=000003652
