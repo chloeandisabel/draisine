@@ -160,7 +160,7 @@ module Draisine
 
     def salesforce_fresh_update?(attributes)
       !salesforce_updated_at || !attributes['SystemModstamp'] ||
-        Time.parse(attributes['SystemModstamp']) > salesforce_updated_at
+        Draisine.parse_time(attributes['SystemModstamp']) > salesforce_updated_at
     end
 
     def salesforce_syncer
