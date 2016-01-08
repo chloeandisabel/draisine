@@ -5,12 +5,13 @@ module Draisine
     ]
 
     attr_reader :model_class, :client, :salesforce_object_name,
-                :salesforce_id
+                :local_id, :salesforce_id
 
-    def initialize(model_class, client, salesforce_id)
+    def initialize(model_class, client, local_id, salesforce_id)
       @model_class = model_class
       @client = client
       @salesforce_object_name = model_class.salesforce_object_name
+      @local_id = local_id
       @salesforce_id = salesforce_id
     end
 
@@ -38,7 +39,11 @@ module Draisine
     def remote_push(_options = {})
       raise ArgumentError, "local model is required for remote push" unless model
 
-      model.salesforce_outbound_update(model.salesforce_attributes)
+      if model.salesforce_id.present?
+        model.salesforce_outbound_update(model.salesforce_attributes)
+      else
+        model.salesforce_outbound_create
+      end
     end
 
     def remote_delete(_options = {})
@@ -65,7 +70,11 @@ module Draisine
     end
 
     def model
-      @model ||= model_class.find_by(salesforce_id: salesforce_id)
+      @model ||= if local_id
+        model_class.find_by(id: local_id)
+      else
+        model_class.find_by(salesforce_id: salesforce_id)
+      end
     end
 
     def remote_model

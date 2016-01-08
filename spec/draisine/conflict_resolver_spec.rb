@@ -11,7 +11,7 @@ describe Draisine::ConflictResolver do
       LastName: 'Snow'
     })
   }
-  subject { described_class.new(lead.class, sf_client, salesforce_id) }
+  subject { described_class.new(lead.class, sf_client, lead.id, salesforce_id) }
 
   before(:each) do
     salesforce_stub_out_leads!
@@ -90,6 +90,15 @@ describe Draisine::ConflictResolver do
       expect(sf_client).to receive(:http_patch)
       allow(sf_client).to receive(:http_get).and_return(double(body: { SystemModstamp: Time.now }.to_json))
       subject.remote_push
+    end
+
+    it "allows to recreate a model remotely" do
+      expect(sf_client).to receive(:http_post).and_return(double(body: { id: 'A002' }.to_json))
+      allow(sf_client).to receive(:http_get).and_return(double(body: { SystemModstamp: Time.now }.to_json))
+      lead.update_column(:salesforce_id, nil)
+      subject.remote_push
+      lead.reload
+      expect(lead.salesforce_id).to eq('A002')
     end
   end
 
