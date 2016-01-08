@@ -58,6 +58,7 @@ module Draisine
       @start_date = start_date
       @end_date = end_date
 
+      check_unpersisted_records
       check_deletes
       check_modifications
 
@@ -65,6 +66,15 @@ module Draisine
     rescue => e
       result.error!(e)
       raise
+    end
+
+    def check_unpersisted_records
+      bad_records = model_class.where("salesforce_id IS NULL OR salesforce_id = ?", '')
+      bad_records.each do |record|
+        result.discrepancy(:local_record_without_salesforce_id,
+          nil,
+          record.attributes)
+      end
     end
 
     def check_deletes
@@ -83,6 +93,8 @@ module Draisine
     def check_modifications
       updated_ids = client.get_updated(
         salesforce_object_name, start_date, end_date).fetch('ids')
+      updated_ids += model_class.where("updated_at >= ? AND updated_at <= ?", start_date, end_date)
+        .pluck(:salesforce_id).compact
       return unless updated_ids.any?
       local_records = model_class.where(salesforce_id: updated_ids).map(&:attributes)
       remote_records = client.fetch_multiple(salesforce_object_name, updated_ids).map(&:attributes)
