@@ -5,6 +5,9 @@ class <%= @migration_title %> < ActiveRecord::Migration
       t.column :<%= col_def.column_name %>, :<%= col_def.column_type %>, <%= col_def.options.inspect %>
       <%- end -%>
 
+      t.timestamps
+      t.index :updated_at
+
       # These are draisine-specific columns
       t.column :salesforce_id, :string, :limit => 18
       t.column :salesforce_updated_at, :datetime
