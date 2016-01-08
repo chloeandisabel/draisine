@@ -1,6 +1,6 @@
 module Draisine
   class Auditor
-    Discrepancy = Struct.new(:type, :salesforce_id, :local_attrs, :remote_attrs, :diff_keys)
+    Discrepancy = Struct.new(:type, :salesforce_type, :salesforce_id, :local_type, :local_id, :local_attributes, :remote_attributes, :diff_keys)
 
     class Result
       attr_reader :discrepancies, :status, :error
@@ -37,8 +37,11 @@ module Draisine
         @status == :running
       end
 
-      def discrepancy(type, salesforce_id, local_attrs = nil, remote_attrs = nil, diff = nil)
-        discrepancies << Discrepancy.new(type, salesforce_id, local_attrs, remote_attrs, diff)
+      def discrepancy(type:, salesforce_type:, salesforce_id:,
+          local_type: nil, local_id: nil, local_attributes: nil, remote_attributes: nil, diff_keys: nil)
+
+        discrepancies << Discrepancy.new(type, salesforce_type, salesforce_id,
+          local_type, local_id, local_attributes, remote_attributes, diff_keys)
       end
     end
 
@@ -71,9 +74,13 @@ module Draisine
     def check_unpersisted_records
       bad_records = model_class.where("salesforce_id IS NULL OR salesforce_id = ?", '')
       bad_records.each do |record|
-        result.discrepancy(:local_record_without_salesforce_id,
-          nil,
-          record.attributes)
+        result.discrepancy(
+          type: :local_record_without_salesforce_id,
+          salesforce_type: salesforce_object_name,
+          salesforce_id: nil,
+          local_id: record.id,
+          local_type: record.class.name,
+          local_attributes: record.attributes)
       end
     end
 
@@ -84,9 +91,13 @@ module Draisine
         map {|r| r['id']}
       ghost_models = model_class.where(salesforce_id: deleted_ids).all
       ghost_models.each do |ghost_model|
-        result.discrepancy(:remote_delete_kept_locally,
-          ghost_model.salesforce_id,
-          ghost_model.attributes)
+        result.discrepancy(
+          type: :remote_delete_kept_locally,
+          salesforce_type: salesforce_object_name,
+          salesforce_id: ghost_model.salesforce_id,
+          local_id: ghost_model.id,
+          local_type: ghost_model.class.name,
+          local_attributes: ghost_model.attributes)
       end
     end
 
@@ -95,25 +106,40 @@ module Draisine
         salesforce_object_name, start_date, end_date).fetch('ids')
       updated_ids += model_class.where("updated_at >= ? AND updated_at <= ?", start_date, end_date)
         .pluck(:salesforce_id).compact
+
       return unless updated_ids.any?
-      local_records = model_class.where(salesforce_id: updated_ids).map(&:attributes)
+
+      local_records = model_class.where(salesforce_id: updated_ids).to_a
       remote_records = client.fetch_multiple(salesforce_object_name, updated_ids).map(&:attributes)
-      local_records_map = build_map(local_records, 'salesforce_id')
-      remote_records_map = build_map(remote_records, 'Id')
+
+      local_records_map = build_map(local_records) {|record| record.salesforce_id }
+      remote_records_map = build_map(remote_records) {|record| record.fetch('Id') }
 
       missing_ids = updated_ids - local_records_map.keys
       missing_ids.each do |id|
-        result.discrepancy(:remote_record_missing_locally,
-          id, nil, remote_records_map.fetch(id))
+        result.discrepancy(
+          type: :remote_record_missing_locally,
+          salesforce_type: salesforce_object_name,
+          salesforce_id: id,
+          remote_attributes: remote_records_map.fetch(id))
       end
 
       attr_list = model_class.salesforce_audited_attributes
-      local_records_map.each do |id, local_record|
-        remote_record = remote_records_map.fetch(id)
-        diff = hash_diff(local_record, remote_record, attr_list)
+      local_records_map.each do |salesforce_id, local_record|
+        remote_attributes = remote_records_map[salesforce_id]
+        next unless remote_attributes
+        local_attributes = local_record.salesforce_attributes
+        diff = hash_diff(local_attributes, remote_attributes, attr_list)
         unless diff.empty?
-          result.discrepancy(:mismatching_records,
-            id, local_record, remote_record, diff)
+          result.discrepancy(
+            type: :mismatching_records,
+            salesforce_type: salesforce_object_name,
+            salesforce_id: salesforce_id,
+            local_id: local_record.id,
+            local_type: local_record.class.name,
+            local_attributes: local_attributes,
+            remote_attributes: remote_attributes,
+            diff_keys: diff)
         end
       end
     end
@@ -124,9 +150,9 @@ module Draisine
 
     protected
 
-    def build_map(list_of_hashes, key)
+    def build_map(list_of_hashes, &key_block)
       list_of_hashes.each_with_object({}) do |item, rs|
-        rs[item.fetch(key)] = item
+        rs[key_block.call(item)] = item
       end
     end
 

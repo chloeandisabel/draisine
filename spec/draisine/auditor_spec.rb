@@ -53,7 +53,9 @@ describe Draisine::Auditor do
       discrepancy = result.discrepancies[0]
       expect(discrepancy.type).to eq(:remote_delete_kept_locally)
       expect(discrepancy.salesforce_id).to eq('D000')
-      expect(discrepancy.local_attrs).to be_present
+      expect(discrepancy.local_id).to be_present
+      expect(discrepancy.local_type).to be_present
+      expect(discrepancy.local_attributes).to be_present
     end
 
     it "returns failure when there are local records without salesforce_id" do
@@ -63,6 +65,9 @@ describe Draisine::Auditor do
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
       expect(discrepancy.type).to eq(:local_record_without_salesforce_id)
+      expect(discrepancy.local_id).to be_present
+      expect(discrepancy.local_type).to be_present
+      expect(discrepancy.local_attributes).to be_present
     end
 
     it "returns success when records updated in salesforce are updated to same values locally" do
@@ -103,7 +108,7 @@ describe Draisine::Auditor do
       discrepancy = result.discrepancies[0]
       expect(discrepancy.type).to eq(:remote_record_missing_locally)
       expect(discrepancy.salesforce_id).to eq('A000')
-      expect(discrepancy.remote_attrs).to be_present
+      expect(discrepancy.remote_attributes).to be_present
     end
 
     it "returns failure when records in salesforce and local copies do not match" do
@@ -125,10 +130,12 @@ describe Draisine::Auditor do
       discrepancy = result.discrepancies[0]
       expect(discrepancy.type).to eq(:mismatching_records)
       expect(discrepancy.salesforce_id).to eq('A000')
-      expect(discrepancy.remote_attrs).to be_present
-      expect(discrepancy.local_attrs).to be_present
-      expect(discrepancy.local_attrs['FirstName']).to eq('Alice')
-      expect(discrepancy.remote_attrs['FirstName']).to eq('Elizabeth')
+      expect(discrepancy.remote_attributes).to be_present
+      expect(discrepancy.local_id).to be_present
+      expect(discrepancy.local_type).to be_present
+      expect(discrepancy.local_attributes).to be_present
+      expect(discrepancy.local_attributes['FirstName']).to eq('Alice')
+      expect(discrepancy.remote_attributes['FirstName']).to eq('Elizabeth')
       expect(discrepancy.diff_keys).to eq(['FirstName'])
     end
 
@@ -151,10 +158,12 @@ describe Draisine::Auditor do
       discrepancy = result.discrepancies[0]
       expect(discrepancy.type).to eq(:mismatching_records)
       expect(discrepancy.salesforce_id).to eq('A000')
-      expect(discrepancy.remote_attrs).to be_present
-      expect(discrepancy.local_attrs).to be_present
-      expect(discrepancy.local_attrs['FirstName']).to eq('Alice')
-      expect(discrepancy.remote_attrs['FirstName']).to eq('Anne')
+      expect(discrepancy.remote_attributes).to be_present
+      expect(discrepancy.local_id).to be_present
+      expect(discrepancy.local_type).to be_present
+      expect(discrepancy.local_attributes).to be_present
+      expect(discrepancy.local_attributes['FirstName']).to eq('Alice')
+      expect(discrepancy.remote_attributes['FirstName']).to eq('Anne')
       expect(discrepancy.diff_keys).to eq(['FirstName'])
     end
 
