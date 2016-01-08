@@ -36,5 +36,19 @@ module Databasedotcom
       return date.to_time.iso8601 if date.respond_to?(:to_time)
       date
     end
+
+    def find_or_materialize(class_or_classname)
+      if class_or_classname.is_a?(Class)
+        clazz = class_or_classname
+      else
+        match = class_or_classname.match(/(?:(.+)::)?(\w+)$/)
+        preceding_namespace = match[1]
+        classname = match[2]
+        raise ArgumentError if preceding_namespace && preceding_namespace != module_namespace.name
+        clazz = module_namespace.const_get(classname.to_sym, false) rescue nil # fix inherited namespace
+        clazz ||= self.materialize(classname)
+      end
+      clazz
+    end
   end
 end
