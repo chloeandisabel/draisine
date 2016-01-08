@@ -4,7 +4,7 @@ class <%= @model_name %> < ActiveRecord::Base
   serialize :<%= col %>, JSON
   <%- end -%>
 
-  salesforce_syncable <%= @columns.map(&:to_sym).inspect %>,
+  salesforce_syncable synced_attributes: <%= @columns.map(&:to_sym).inspect %>,
       non_audited_attributes: <%= @non_audited_columns.map(&:to_sym).inspect %>,
       array_attributes: <%= @array_columns.map(&:to_sym).inspect %>,
       salesforce_object_name: <%= @salesforce_object_name.inspect %>
