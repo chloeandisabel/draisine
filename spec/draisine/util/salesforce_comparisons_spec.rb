@@ -14,9 +14,20 @@ describe Draisine::SalesforceComparisons do
 
     it "coerces different time classes" do
       time = Time.current
-      time1 = double(:to_time => time)
+      time1 = DateTime.parse(time.iso8601)
       time2 = time
       expect(subject.salesforce_equals?(time1, time2)).to be_truthy
+    end
+
+    it "has 1s precision" do
+      time = Time.current
+      another = time + 0.001.seconds
+      expect(time).not_to eq(another)
+      expect(subject.salesforce_equals?(time, another)).to be_truthy
+    end
+
+    it "doesn't try to coerce strings looking like numbers" do
+      expect(subject.salesforce_equals?("10:00 +99:00", "10:00 +99:00")).to be_truthy
     end
 
     it "compares different types using normal equality" do
