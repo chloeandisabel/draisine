@@ -157,7 +157,9 @@ module Draisine
     end
 
     def hash_diff(hash1, hash2, keys)
-      keys.map(&:to_s).select {|k| hash1[k] != hash2[k] }
+      keys.map(&:to_s).reject do |k|
+        SalesforceComparisons.salesforce_equals?(hash1[k], hash2[k])
+      end
     end
   end
 end

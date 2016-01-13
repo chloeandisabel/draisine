@@ -21,6 +21,7 @@ require "draisine/ip_checker"
 
 require "draisine/util/hash_diff"
 require "draisine/util/parse_time"
+require "draisine/util/salesforce_comparisons"
 require "draisine/auditor"
 require "draisine/conflict_detector"
 require "draisine/conflict_resolver"
