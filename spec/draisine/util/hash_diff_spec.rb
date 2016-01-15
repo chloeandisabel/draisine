@@ -45,4 +45,12 @@ describe Draisine::HashDiff do
       expect(subject.sf_diff(a, b).unchanged).to eq([:a])
     end
   end
+
+  describe "#diff_keys" do
+    it "returns a list of differing keys" do
+      a = { a: 1, b: 2, d: 4 }
+      b = { a: 2, c: 3, d: 4 }
+      expect(subject.diff(a, b).diff_keys).to match_array([:a, :b, :c])
+    end
+  end
 end

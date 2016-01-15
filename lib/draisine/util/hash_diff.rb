@@ -30,6 +30,10 @@ module Draisine
     def self.sf_diff(hash1, hash2)
       diff(hash1, hash2, SalesforceComparisons.method(:salesforce_equals?))
     end
+
+    def diff_keys
+      changed | added | removed
+    end
   end
 
 end
