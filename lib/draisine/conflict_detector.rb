@@ -30,7 +30,7 @@ module Draisine
     def diff
       return unless model && remote_model
 
-      @diff ||= HashDiff.diff(
+      @diff ||= HashDiff.sf_diff(
           model.attributes.slice(*attributes_list),
           remote_model.attributes.slice(*attributes_list))
     end
