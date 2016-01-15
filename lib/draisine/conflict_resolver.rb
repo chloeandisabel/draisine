@@ -31,13 +31,13 @@ module Draisine
     end
 
     def remote_pull(_options = {})
-      raise ArgumentError, "remote model is required for remote pull" unless remote_model
+      fail ArgumentError, "remote model is required for remote pull" unless remote_model
 
       model_class.salesforce_inbound_update(remote_model.attributes)
     end
 
     def remote_push(_options = {})
-      raise ArgumentError, "local model is required for remote push" unless model
+      fail ArgumentError, "local model is required for remote push" unless model
 
       if model.salesforce_id.present?
         model.salesforce_outbound_update(model.salesforce_attributes)
@@ -47,7 +47,7 @@ module Draisine
     end
 
     def remote_delete(_options = {})
-      raise ArgumentError, "local model is required for remote delete" unless model
+      fail ArgumentError, "local model is required for remote delete" unless model
 
       model.salesforce_outbound_delete
     end
@@ -57,7 +57,7 @@ module Draisine
     end
 
     def merge(options)
-      raise ArgumentError unless model && remote_model
+      fail ArgumentError unless model && remote_model
       assert_required_options!(options, [:local_attributes, :remote_attributes])
 
       local_attrs_to_merge = options.fetch(:local_attributes)
@@ -90,7 +90,7 @@ module Draisine
 
     def assert_required_options!(options, keys)
       keys.each do |key|
-        raise ArgumentError, "missing required option #{key}" unless options.key?(key)
+        fail ArgumentError, "missing required option #{key}" unless options.key?(key)
       end
     end
   end
