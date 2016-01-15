@@ -51,6 +51,13 @@ describe Draisine::ConflictDetector do
       subject = described_class.new(nil, nil, attrs)
       expect(subject.conflict_type).to eq(:no_conflict)
     end
+
+    it "returns :no_conflict when one record doesn't have an attribute set and another has it set to nil" do
+      remote_model = MaterializedModelInstance.new('Id' => 'A001', 'FirstName' => 'John')
+      model.LastName = nil
+      subject = described_class.new(model, remote_model, attrs)
+      expect(subject.conflict_type).to eq(:no_conflict)
+    end
   end
 
   describe "#diff" do

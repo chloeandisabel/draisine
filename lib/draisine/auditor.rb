@@ -110,10 +110,10 @@ module Draisine
       return unless updated_ids.any?
 
       local_records = model_class.where(salesforce_id: updated_ids).to_a
-      remote_records = client.fetch_multiple(salesforce_object_name, updated_ids).map(&:attributes)
+      remote_records = client.fetch_multiple(salesforce_object_name, updated_ids)
 
       local_records_map = build_map(local_records) {|record| record.salesforce_id }
-      remote_records_map = build_map(remote_records) {|record| record.fetch('Id') }
+      remote_records_map = build_map(remote_records) {|record| record.Id }
 
       missing_ids = updated_ids - local_records_map.keys
       missing_ids.each do |id|
@@ -126,20 +126,20 @@ module Draisine
 
       attr_list = model_class.salesforce_audited_attributes
       local_records_map.each do |salesforce_id, local_record|
-        remote_attributes = remote_records_map[salesforce_id]
-        next unless remote_attributes
-        local_attributes = local_record.salesforce_attributes
-        diff = hash_diff(local_attributes, remote_attributes, attr_list)
-        unless diff.empty?
+        remote_record = remote_records_map[salesforce_id]
+        next unless remote_record
+        conflict_detector = ConflictDetector.new(local_record, remote_record, attr_list)
+
+        if conflict_detector.conflict?
           result.discrepancy(
             type: :mismatching_records,
             salesforce_type: salesforce_object_name,
             salesforce_id: salesforce_id,
             local_id: local_record.id,
             local_type: local_record.class.name,
-            local_attributes: local_attributes,
-            remote_attributes: remote_attributes,
-            diff_keys: diff)
+            local_attributes: local_record.attributes,
+            remote_attributes: remote_record.attributes,
+            diff_keys: conflict_detector.diff.diff_keys)
         end
       end
     end
@@ -153,12 +153,6 @@ module Draisine
     def build_map(list_of_hashes, &key_block)
       list_of_hashes.each_with_object({}) do |item, rs|
         rs[key_block.call(item)] = item
-      end
-    end
-
-    def hash_diff(hash1, hash2, keys)
-      keys.map(&:to_s).reject do |k|
-        SalesforceComparisons.salesforce_equals?(hash1[k], hash2[k])
       end
     end
   end

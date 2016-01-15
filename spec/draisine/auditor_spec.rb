@@ -181,8 +181,8 @@ describe Draisine::Auditor do
           'SystemModstamp' => modstamp
         })
       ]))
-      allow(Lead).to receive(:salesforce_synced_attributes).and_return([:FirstName, :LastName])
-      allow(Lead).to receive(:salesforce_audited_attributes).and_return([:FirstName])
+      allow(Lead).to receive(:salesforce_synced_attributes).and_return(["FirstName", "LastName"])
+      allow(Lead).to receive(:salesforce_audited_attributes).and_return(["FirstName"])
       result = subject.run
       expect(result).to be_success
     end

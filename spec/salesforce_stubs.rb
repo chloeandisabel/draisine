@@ -16,7 +16,17 @@ shared_context "Salesforce stubs" do
     end
   end
 
-  MaterializedModelInstance = Struct.new(:attributes)
+  MaterializedModelInstance = Struct.new(:attributes) do
+    def method_missing(name, *args, &block)
+      if attributes.key?(name)
+        attributes[name]
+      elsif attributes.key?(name.to_s)
+        attributes[name.to_s]
+      else
+        super
+      end
+    end
+  end
 
   let(:sf_client) { double(:client, version: 'v29.0') }
   let(:lead_type_map) {

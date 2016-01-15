@@ -1,7 +1,7 @@
 module Draisine
   class ConflictDetector
     attr_reader :model, :remote_model, :attributes_list
-    def initialize(model, remote_model, attributes_list)
+    def initialize(model, remote_model, attributes_list = model.class.salesforce_audited_attributes)
       @model = model
       @remote_model = remote_model
       @attributes_list = attributes_list
@@ -13,7 +13,7 @@ module Draisine
 
     def conflict_type
       if model && remote_model
-        if diff.removed.empty? && diff.changed.empty? && diff.added.empty?
+        if diff.diff_keys.empty?
           :no_conflict
         else
           :mismatching_records
@@ -31,8 +31,8 @@ module Draisine
       return unless model && remote_model
 
       @diff ||= HashDiff.sf_diff(
-          model.attributes.slice(*attributes_list),
-          remote_model.attributes.slice(*attributes_list))
+          model.salesforce_attributes.slice(*attributes_list).compact,
+          remote_model.attributes.slice(*attributes_list).compact)
     end
   end
 end
