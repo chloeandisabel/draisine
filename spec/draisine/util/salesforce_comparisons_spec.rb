@@ -30,6 +30,13 @@ describe Draisine::SalesforceComparisons do
       expect(subject.salesforce_equals?("10:00 +99:00", "10:00 +99:00")).to be_truthy
     end
 
+    it "converts iso8601 strings into timestamps" do
+      time = Time.current
+      time1 = time.iso8601
+      expect(time1).not_to eq(time)
+      expect(subject.salesforce_equals?(time, time1)).to be_truthy
+    end
+
     it "compares different types using normal equality" do
       expect(subject.salesforce_equals?(123, nil)).to be_falsey
       expect(subject.salesforce_equals?(123, 123)).to be_truthy
