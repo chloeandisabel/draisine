@@ -137,7 +137,7 @@ module Draisine
             salesforce_id: salesforce_id,
             local_id: local_record.id,
             local_type: local_record.class.name,
-            local_attributes: local_record.attributes,
+            local_attributes: local_record.salesforce_attributes,
             remote_attributes: remote_record.attributes,
             diff_keys: conflict_detector.diff.diff_keys)
         end
