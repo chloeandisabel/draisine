@@ -167,7 +167,10 @@ module Draisine
     end
 
     def salesforce_callback(type, options = {})
-      self.class.salesforce_callback(type, salesforce_id, options)
+      self.class.salesforce_callback(type, salesforce_id, {
+        local_record_type: self.class.name,
+        local_record_id: id
+      }.merge(options))
     end
 
     protected
