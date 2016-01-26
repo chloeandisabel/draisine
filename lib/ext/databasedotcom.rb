@@ -22,6 +22,12 @@ module Databasedotcom
                         start: prepare_date_arg(start_date),
                         end: prepare_date_arg(end_date))
       JSON.parse(result.body)
+    rescue Databasedotcom::SalesForceError => e
+      if e.message.include?("is not replicable")
+        {}
+      else
+        raise
+      end
     end
 
     # Returns a list of updated sobject ids for provided date range
@@ -31,6 +37,12 @@ module Databasedotcom
                         start: prepare_date_arg(start_date),
                         end: prepare_date_arg(end_date))
       JSON.parse(result.body)
+    rescue Databasedotcom::SalesForceError => e
+      if e.message.include?("is not replicable")
+        {}
+      else
+        raise
+      end
     end
 
     protected
