@@ -24,10 +24,12 @@ module Draisine
       "multipicklist" => type(:binary, serialized: true, array: true),
       "double" => type(:float),
       "datetime" => type(:datetime),
-      "anyType" => type(:binary, serialized: true)
-      # Leave these two types out for now
+      "anyType" => type(:binary, serialized: true),
+      "combobox" => type(:text),
+      "currency" => type(:float),
+      "percent" => type(:float)
+      # Leave this one for now
       # "encrypted_string" => :string,
-      # "currency" => :???????
     }
 
     EXCLUDED_COLUMNS = ["Id"]

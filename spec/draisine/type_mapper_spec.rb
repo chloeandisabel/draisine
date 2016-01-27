@@ -40,6 +40,27 @@ describe Draisine::TypeMapper do
       expect(mapper.active_record_column_defs.first.column_type).to eq :string
     end
 
+    it "uses text for comboboxes" do
+      mapper = described_class.new({
+        "Value" => {:label => "Some custom value", :type => "combobox", :updateable? => true}
+      })
+      expect(mapper.active_record_column_defs.first.column_type).to eq :text
+    end
+
+    it "uses floats for currencies" do
+      mapper = described_class.new({
+        "CurrencyValue" => {:label => "Some custom currency value", :type => "currency", :updateable? => true}
+      })
+      expect(mapper.active_record_column_defs.first.column_type).to eq :float
+    end
+
+    it "uses floats for percents" do
+      mapper = described_class.new({
+        "PercentValue" => {:label => "Some custom percent value", :type => "percent", :updateable? => true}
+      })
+      expect(mapper.active_record_column_defs.first.column_type).to eq :float
+    end
+
     it "doesn't not create a column for Id" do
       mapper = described_class.new({
         "Id" => {:label => "Lead", :type => "id", :updateable? => false}
@@ -47,7 +68,7 @@ describe Draisine::TypeMapper do
       expect(mapper.active_record_column_defs).to eq []
     end
 
-    it "ignores currency and encrypted strings for now"
+    it "ignores encrypted strings for now"
   end
 
   describe "#serialized_columns" do
