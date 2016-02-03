@@ -1,54 +1,11 @@
+require "draisine/auditor/partitioner"
+require "draisine/auditor/result"
+
 module Draisine
   class Auditor
-    Discrepancy = Struct.new(:type, :salesforce_type, :salesforce_id, :local_type, :local_id, :local_attributes, :remote_attributes, :diff_keys)
-    AuditPartition = Struct.new(:model_class, :start_date, :end_date, :updated_ids, :deleted_ids, :unpersisted_ids)
-
-    class Result
-      attr_reader :discrepancies, :status, :error
-      def initialize
-        @discrepancies = []
-        @status = :running
-        @error = nil
-      end
-
-      def calculate_result!
-        if discrepancies.any?
-          @status = :failure
-        else
-          @status = :success
-        end
-        self
-      end
-
-      def error!(ex)
-        @error = ex
-        @status = :failure
-        self
-      end
-
-      def success?
-        @status == :success
-      end
-
-      def failure?
-        @status == :failure
-      end
-
-      def running?
-        @status == :running
-      end
-
-      def discrepancy(type:, salesforce_type:, salesforce_id:,
-          local_type: nil, local_id: nil, local_attributes: nil, remote_attributes: nil, diff_keys: nil)
-
-        discrepancies << Discrepancy.new(type, salesforce_type, salesforce_id,
-          local_type, local_id, local_attributes, remote_attributes, diff_keys)
-      end
-    end
-
     def self.run(model_class, start_date = Time.now.beginning_of_day, end_date = Time.now)
-      partitions = partition(model_class, start_date, end_date, 10**12)
       # TODO: instead of using one huge partition, combine multiple results into one
+      partitions = partition(model_class, start_date, end_date, 10**12)
       run_partition(partitions.first)
     end
 
@@ -57,42 +14,7 @@ module Draisine
     end
 
     def self.partition(model_class, start_date, end_date, partition_size = 100)
-      updated_ids = get_updated_ids(model_class, start_date, end_date)
-      deleted_ids = get_deleted_ids(model_class, start_date, end_date)
-      unpersisted_ids = get_unpersisted_ids(model_class, start_date, end_date)
-
-      # if anyone knows how to do this packing procedure better, please tell me
-      all_ids = updated_ids.map {|id| [:updated, id] } +
-                deleted_ids.map {|id| [:deleted, id] } +
-                unpersisted_ids.map {|id| [:unpersisted, id] }
-
-      return [AuditPartition.new(model_class, start_date, end_date)] unless all_ids.present?
-
-      all_ids.each_slice(partition_size).map do |slice|
-        part = slice.group_by(&:first).map {|k,v| [k, v.map(&:last)] }.to_h
-        AuditPartition.new(model_class, start_date, end_date, part[:updated], part[:deleted], part[:unpersisted])
-      end
-    end
-
-    def self.get_updated_ids(model_class, start_date, end_date)
-      updated_ids = client.get_updated_ids(model_class.salesforce_object_name, start_date, end_date)
-      updated_ids += model_class.where("updated_at >= ? AND updated_at <= ?", start_date, end_date)
-        .pluck(:salesforce_id).compact
-      updated_ids.uniq
-    end
-
-    def self.get_deleted_ids(model_class, start_date, end_date)
-      client.get_deleted_ids(model_class.salesforce_object_name, start_date, end_date)
-    end
-
-    def self.get_unpersisted_ids(model_class, start_date, end_date)
-      model_class.where("salesforce_id IS NULL OR salesforce_id = ?", '')
-                 .where("updated_at >= ? and updated_at <= ?", start_date, end_date)
-                 .pluck(:id)
-    end
-
-    def self.client
-      Draisine.salesforce_client
+      Partitioner.partition(model_class, start_date, end_date, partition_size)
     end
 
     attr_reader :partition, :model_class, :start_date, :end_date, :result
@@ -188,7 +110,7 @@ module Draisine
     protected
 
     def client
-      self.class.client
+      Draisine.salesforce_client
     end
 
     def build_map(list_of_hashes, &key_block)
