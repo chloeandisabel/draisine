@@ -2,8 +2,6 @@ require "spec_helper_ar"
 
 describe Draisine::Auditor do
   include_context "Salesforce stubs"
-  let(:sf_client) { double(:salesforce_client) }
-
   subject { described_class.new(Lead) }
 
   before(:each) do
@@ -18,9 +16,36 @@ describe Draisine::Auditor do
     allow(sf_client).to receive(:get_deleted_ids).and_return([])
   end
 
-  describe "#run" do
+  describe ".partition" do
+    let(:start_date) { 1.day.ago }
+    let(:end_date) { 10.minutes.ago }
+
+    before do
+      Lead.delete_all
+      Lead.create_without_callbacks!(salesforce_id: 'A000')
+      allow(sf_client).to receive(:get_updated_ids).and_return(['A000', 'A001'])
+      allow(sf_client).to receive(:get_deleted_ids).and_return(['D000'])
+    end
+
+    it "produces partitions for updated ids and deleted ids" do
+      partitions = described_class.partition(Lead, start_date, end_date)
+      expect(partitions).to have(1).element
+      partition = partitions.first
+      expect(partition.updated_ids).to eq(['A000', 'A001'])
+      expect(partition.deleted_ids).to eq(['D000'])
+    end
+
+    it "splits partitions if neccessary" do
+      partitions = described_class.partition(Lead, start_date, end_date, 2)
+      expect(partitions).to have(2).elements
+      expect(partitions.flat_map(&:updated_ids).compact).to eq(['A000', 'A001'])
+      expect(partitions.flat_map(&:deleted_ids).compact).to eq(['D000'])
+    end
+  end
+
+  describe ".run" do
     it "returns successful result if no discrepancies were found" do
-      result = subject.run
+      result = described_class.run(Lead)
       expect(result).to be_success
     end
 
@@ -28,14 +53,14 @@ describe Draisine::Auditor do
       allow(sf_client).to receive(:get_deleted_ids).and_return(['D000'])
       lead = Lead.find_by_salesforce_id('D000')
       lead.salesforce_skipping_sync(&:destroy)
-      result = subject.run
+      result = described_class.run(Lead)
       expect(result).to be_success
       expect(result.discrepancies).to be_empty
     end
 
     it "returns failure when records are deleted from salesforce and kept locally" do
       allow(sf_client).to receive(:get_deleted_ids).and_return(['D000'])
-      result = subject.run
+      result = described_class.run(Lead)
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
@@ -48,7 +73,7 @@ describe Draisine::Auditor do
 
     it "returns failure when there are local records without salesforce_id" do
       lead = Lead.create_without_callbacks!({})
-      result = subject.run
+      result = described_class.run(Lead)
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
@@ -68,7 +93,7 @@ describe Draisine::Auditor do
           'SystemModstamp' => modstamp
         })
       ]))
-      result = subject.run
+      result = described_class.run(Lead)
       expect(result).to be_success
     end
 
@@ -84,7 +109,7 @@ describe Draisine::Auditor do
       ]))
       lead = Lead.find_by_salesforce_id('A000')
       lead.salesforce_skipping_sync(&:destroy)
-      result = subject.run
+      result = described_class.run(Lead)
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
@@ -103,7 +128,7 @@ describe Draisine::Auditor do
           'SystemModstamp' => modstamp
         })
       ]))
-      result = subject.run
+      result = described_class.run(Lead)
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
@@ -128,7 +153,7 @@ describe Draisine::Auditor do
       ]))
       lead = Lead.find_by_salesforce_id('A000')
       lead.touch
-      result = subject.run(1.minute.ago, Time.current)
+      result = described_class.run(Lead, 1.minute.ago, Time.current)
       expect(result).not_to be_success
       expect(result.discrepancies).to have_exactly(1).element
       discrepancy = result.discrepancies[0]
@@ -156,7 +181,7 @@ describe Draisine::Auditor do
       ]))
       allow(Lead).to receive(:salesforce_synced_attributes).and_return(["FirstName", "LastName"])
       allow(Lead).to receive(:salesforce_audited_attributes).and_return(["FirstName"])
-      result = subject.run
+      result = described_class.run(Lead)
       expect(result).to be_success
     end
   end
