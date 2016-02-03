@@ -85,10 +85,7 @@ module Draisine
     end
 
     def check_deletes
-      deleted_ids = client.get_deleted(
-        salesforce_object_name, start_date, end_date).
-        fetch('deletedRecords', []).
-        map {|r| r['id']}
+      deleted_ids = client.get_deleted_ids(salesforce_object_name, start_date, end_date)
       ghost_models = model_class.where(salesforce_id: deleted_ids).all
       ghost_models.each do |ghost_model|
         result.discrepancy(
@@ -102,8 +99,7 @@ module Draisine
     end
 
     def check_modifications
-      updated_ids = client.get_updated(
-        salesforce_object_name, start_date, end_date).fetch('ids', [])
+      updated_ids = client.get_updated_ids(salesforce_object_name, start_date, end_date)
       updated_ids += model_class.where("updated_at >= ? AND updated_at <= ?", start_date, end_date)
         .pluck(:salesforce_id).compact
 

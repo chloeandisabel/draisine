@@ -14,14 +14,8 @@ describe Draisine::Auditor do
     Lead.create_without_callbacks!(salesforce_id: 'A001', FirstName: 'Bob', updated_at: 1.month.ago, created_at: 1.month.ago)
     Lead.create_without_callbacks!(salesforce_id: 'A002', FirstName: 'Charlie', updated_at: 1.month.ago, created_at: 1.month.ago)
     Lead.create_without_callbacks!(salesforce_id: 'D000', FirstName: 'Don', updated_at: 1.month.ago, created_at: 1.month.ago)
-    allow(sf_client).to receive(:get_updated).and_return({
-      'ids' => [],
-      'latestDateCovered' => Time.now.iso8601
-    })
-    allow(sf_client).to receive(:get_deleted).and_return({
-      'deletedRecords' => [],
-      'latestDateCovered' => Time.now.iso8601
-    })
+    allow(sf_client).to receive(:get_updated_ids).and_return([])
+    allow(sf_client).to receive(:get_deleted_ids).and_return([])
   end
 
   describe "#run" do
@@ -31,10 +25,7 @@ describe Draisine::Auditor do
     end
 
     it "returns success when records are deleted BOTH from salesforce and locally" do
-      allow(sf_client).to receive(:get_deleted).and_return({
-        'deletedRecords' => [{'id' => 'D000', 'deletedDate' => '2015-11-01T00:00:00+00:00'}],
-        'latestDateCovered' => Time.now.iso8601
-      })
+      allow(sf_client).to receive(:get_deleted_ids).and_return(['D000'])
       lead = Lead.find_by_salesforce_id('D000')
       lead.salesforce_skipping_sync(&:destroy)
       result = subject.run
@@ -43,10 +34,7 @@ describe Draisine::Auditor do
     end
 
     it "returns failure when records are deleted from salesforce and kept locally" do
-      allow(sf_client).to receive(:get_deleted).and_return({
-        'deletedRecords' => [{'id' => 'D000', 'deletedDate' => '2015-11-01T00:00:00+00:00'}],
-        'latestDateCovered' => Time.now.iso8601
-      })
+      allow(sf_client).to receive(:get_deleted_ids).and_return(['D000'])
       result = subject.run
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
@@ -71,10 +59,7 @@ describe Draisine::Auditor do
     end
 
     it "returns success when records updated in salesforce are updated to same values locally" do
-      allow(sf_client).to receive(:get_updated).and_return({
-        'ids' => ['A000'],
-        'latestDateCovered' => Time.now.iso8601
-      })
+      allow(sf_client).to receive(:get_updated_ids).and_return(["A000"])
       modstamp = Time.parse('2015-12-10')
       allow(sf_client).to receive(:fetch_multiple).and_return(Collection.new([
         MaterializedModelInstance.new({
@@ -88,10 +73,7 @@ describe Draisine::Auditor do
     end
 
     it "returns failure when records from salesforce are missing locally" do
-      allow(sf_client).to receive(:get_updated).and_return({
-        'ids' => ['A000'],
-        'latestDateCovered' => Time.now.iso8601
-      })
+      allow(sf_client).to receive(:get_updated_ids).and_return(['A000'])
       modstamp = Time.parse('2015-12-10')
       allow(sf_client).to receive(:fetch_multiple).and_return(Collection.new([
         MaterializedModelInstance.new({
@@ -112,10 +94,7 @@ describe Draisine::Auditor do
     end
 
     it "returns failure when records in salesforce and local copies do not match" do
-      allow(sf_client).to receive(:get_updated).and_return({
-        'ids' => ['A000'],
-        'latestDateCovered' => Time.now.iso8601
-      })
+      allow(sf_client).to receive(:get_updated_ids).and_return(['A000'])
       modstamp = Time.parse('2015-12-10')
       allow(sf_client).to receive(:fetch_multiple).and_return(Collection.new([
         MaterializedModelInstance.new({
@@ -140,10 +119,7 @@ describe Draisine::Auditor do
     end
 
     it "returns failure when local updates didn't go through to salesforce" do
-      allow(sf_client).to receive(:get_updated).and_return({
-        'ids' => [],
-        'latestDateCovered' => Time.now.iso8601
-      })
+      allow(sf_client).to receive(:get_updated_ids).and_return([])
       allow(sf_client).to receive(:fetch_multiple).and_return(Collection.new([
         MaterializedModelInstance.new({
           'FirstName' => 'Anne',
@@ -168,10 +144,7 @@ describe Draisine::Auditor do
     end
 
     it "doesn't return failure when difference is in non-audited attributes" do
-      allow(sf_client).to receive(:get_updated).and_return({
-        'ids' => ['A000'],
-        'latestDateCovered' => Time.now.iso8601
-      })
+      allow(sf_client).to receive(:get_updated_ids).and_return(['A000'])
       modstamp = Time.parse('2015-12-10')
       allow(sf_client).to receive(:fetch_multiple).and_return(Collection.new([
         MaterializedModelInstance.new({
