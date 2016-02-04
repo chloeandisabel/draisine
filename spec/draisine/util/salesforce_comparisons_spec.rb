@@ -12,6 +12,14 @@ describe Draisine::SalesforceComparisons do
       expect(subject.salesforce_equals?("ABC\r\n", "ABC")).to be_falsey
     end
 
+    it "replaces emoji with spaces in compared strings" do
+      expect(subject.salesforce_equals?("AAA 😬 AAA", "AAA AAA")).to be_truthy
+    end
+
+    it "compacts spaces" do
+      expect(subject.salesforce_equals?("AAA       AAA", "AAA AAA")).to be_truthy
+    end
+
     it "coerces different time classes" do
       time = Time.current
       time1 = DateTime.parse(time.iso8601)

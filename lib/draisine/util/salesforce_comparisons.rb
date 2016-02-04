@@ -25,7 +25,11 @@ module Draisine
     end
 
     def normalize_string(string)
-      string.gsub("\r\n", "\n")
+      remove_emoji(string.gsub("\r\n", "\n")).gsub(/ +/, " ")
+    end
+
+    def remove_emoji(string)
+      string.chars.map {|c| c.ord > 65535 ? " " : c }.join
     end
   end
 end
