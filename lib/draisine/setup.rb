@@ -1,3 +1,5 @@
+require "logger"
+
 module Draisine
   def self.salesforce_client=(client)
     @salesforce_client = client
@@ -48,6 +50,22 @@ EOM
 
   def self.sync_callback=(callback)
     @sync_callback = callback
+  end
+
+  def self.job_retry_attempts
+    @job_retry_attempts ||= 0
+  end
+
+  def self.job_retry_attempts=(count)
+    @job_retry_attempts = count
+  end
+
+  def self.logger
+    @logger ||= Rails.logger
+  end
+
+  def self.logger=(logger)
+    @logger = logger
   end
 
   # https://help.salesforce.com/apex/HTViewSolution?language=en_US&id=000003652
