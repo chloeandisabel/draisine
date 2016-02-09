@@ -2,13 +2,15 @@ module Databasedotcom
   class Client
     # Fetches a collection of sobjects with given ids
     # Useful in conjunction with get_updated / get_deleted calls
-    def fetch_multiple(classname, ids, batch_size = 100)
+    def fetch_multiple(classname, ids, batch_size = 100, field_list = nil)
       return [] unless ids.present?
       klass = find_or_materialize(classname)
-
+      field_list ||= klass.field_list.split(",")
+      field_list = field_list | ["Id"]
+      field_list = field_list.join(",")
       ids.in_groups_of(batch_size).flat_map do |ids|
         query <<-EOQ
-        SELECT #{klass.field_list}
+        SELECT #{field_list}
         FROM #{klass.sobject_name}
         WHERE id IN (#{ids.map {|id| "'%s'" % id}.join(',')})
         EOQ
