@@ -16,10 +16,6 @@ module Draisine
       end
     end
 
-    def self.logger
-      Draisine.logger || super
-    end
-
     def retries_count
       Draisine.job_retry_attempts
     end
@@ -34,10 +30,6 @@ module Draisine
 
     def deserialize(job_data)
       @retry_attempt = job_data.fetch('_retry_attempt', 0)
-    end
-
-    def logger
-      self.class.logger
     end
   end
 end

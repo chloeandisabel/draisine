@@ -60,14 +60,6 @@ EOM
     @job_retry_attempts = count
   end
 
-  def self.logger
-    @logger ||= Rails.logger
-  end
-
-  def self.logger=(logger)
-    @logger = logger
-  end
-
   # https://help.salesforce.com/apex/HTViewSolution?language=en_US&id=000003652
   def self.allowed_ip_ranges
     @allowed_ip_ranges ||= [

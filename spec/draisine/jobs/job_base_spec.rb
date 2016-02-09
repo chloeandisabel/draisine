@@ -11,7 +11,8 @@ describe Draisine::JobBase do
     let(:job_class) { Draisine::TestJob }
 
     before do
-      allow(Draisine).to receive(:logger).and_return(Logger.new("/dev/null"))
+      allow(ActiveJob::Base).to receive(:logger).and_return(ActiveSupport::TaggedLogging.new(Logger.new("/dev/null")))
+      allow_any_instance_of(ActiveJob::Base).to receive(:logger).and_return(ActiveSupport::TaggedLogging.new(Logger.new("/dev/null")))
     end
 
     it "uses globally setup handler for errors" do
