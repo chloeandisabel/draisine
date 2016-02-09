@@ -20,7 +20,7 @@ module Draisine
       @model_name = model.classify.singularize
       @model_file = "app/models/#{model.underscore.singularize}.rb"
       @table_name = model.underscore.gsub("/", "_").pluralize
-      @migration_title = "DeltaUpdateSalesforce#{model.classify.gsub('::', '').pluralize}#{migration_uid}"
+      @migration_title = "DeltaUpdate#{model.classify.gsub('::', '').pluralize}#{migration_uid}"
       @migration_file = existing_migration_name(@migration_title) ||
                         "db/migrate/#{migration_number}_#{@migration_title.underscore}.rb"
 
