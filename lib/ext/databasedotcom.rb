@@ -74,4 +74,18 @@ module Databasedotcom
       clazz
     end
   end
+
+  module Sobject
+    module NumericFieldsExtensions
+      def register_field(name, field)
+        super
+        self.type_map[name][:scale] = field["scale"] if field["scale"]
+        self.type_map[name][:precision] = field["precision"] if field["precision"]
+      end
+    end
+
+    class <<Sobject
+      prepend NumericFieldsExtensions
+    end
+  end
 end

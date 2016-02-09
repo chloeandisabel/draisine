@@ -47,18 +47,18 @@ describe Draisine::TypeMapper do
       expect(mapper.active_record_column_defs.first.column_type).to eq :text
     end
 
-    it "uses floats for currencies" do
+    it "uses decimals for currencies" do
       mapper = described_class.new({
         "CurrencyValue" => {:label => "Some custom currency value", :type => "currency", :updateable? => true}
       })
-      expect(mapper.active_record_column_defs.first.column_type).to eq :float
+      expect(mapper.active_record_column_defs.first.column_type).to eq :decimal
     end
 
-    it "uses floats for percents" do
+    it "uses decimals for percents" do
       mapper = described_class.new({
         "PercentValue" => {:label => "Some custom percent value", :type => "percent", :updateable? => true}
       })
-      expect(mapper.active_record_column_defs.first.column_type).to eq :float
+      expect(mapper.active_record_column_defs.first.column_type).to eq :decimal
     end
 
     it "doesn't not create a column for Id" do
@@ -66,6 +66,20 @@ describe Draisine::TypeMapper do
         "Id" => {:label => "Lead", :type => "id", :updateable? => false}
       })
       expect(mapper.active_record_column_defs).to eq []
+    end
+
+    it "uses integers for doubles with scale=0" do
+      mapper = described_class.new({
+        "Field_ID__c" => {:label => "ID", :type => "double", :updateable? => true, :precision => 18, :scale => 0}
+      })
+      expect(mapper.active_record_column_defs.first.column_type).to eq :integer
+    end
+
+    it "uses floats for doubles with scale > 0" do
+      mapper = described_class.new({
+        "Field__c" => {:label => "Value", :type => "double", :updateable? => true, :precision => 18, :scale => 2}
+      })
+      expect(mapper.active_record_column_defs.first.column_type).to eq :float
     end
 
     it "ignores encrypted strings for now"

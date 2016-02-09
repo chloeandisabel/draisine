@@ -7,12 +7,20 @@ module Draisine
       Type.new(ar_type, ar_options, serialized, array)
     end
 
+    def self.determine_type_for_float(name, sf_schema)
+      if (precision = sf_schema[:precision]) && (scale = sf_schema[:scale]) && scale == 0
+        type(:integer, ar_options: { limit: 8 })
+      else
+        type(:float, ar_options: { limit: 53 })
+      end
+    end
+
     # Apparently, mysql has a hard limit of 64k per row.
     # That's why we're using text types where we could also use strings.
     TYPES_MAP = {
       "boolean" => type(:boolean),
       "string" => type(:text),
-      "reference" => type(:string, ar_options: {:limit => 20}),
+      "reference" => type(:string, ar_options: { limit: 20 }),
       "picklist" => type(:binary, serialized: true),
       "textarea" => type(:text),
       "phone" => type(:text),
@@ -22,12 +30,12 @@ module Draisine
       "date" => type(:date),
       "time" => type(:time),
       "multipicklist" => type(:binary, serialized: true, array: true),
-      "double" => type(:float),
+      "double" => method(:determine_type_for_float),
       "datetime" => type(:datetime),
       "anyType" => type(:binary, serialized: true),
       "combobox" => type(:text),
-      "currency" => type(:float),
-      "percent" => type(:float)
+      "currency" => type(:decimal, ar_options: { precision: 18, scale: 6 }),
+      "percent" => type(:decimal, ar_options: { precision: 18, scale: 6 })
       # Leave this one for now
       # "encrypted_string" => :string,
     }
@@ -67,7 +75,8 @@ module Draisine
 
     def type_for(sf_column_name, sf_column_schema)
       sf_type = sf_column_schema.fetch(:type)
-      TYPES_MAP.fetch(sf_type) { warn "Unknown column type #{sf_type} for column #{sf_column_name}, ignoring it" }
+      type = TYPES_MAP.fetch(sf_type) { warn "Unknown column type #{sf_type} for column #{sf_column_name}, ignoring it" }
+      type.respond_to?(:call) ? type.call(sf_column_name, sf_column_schema) : type
     end
 
     def ignored_column?(sf_column_name, sf_column_schema)
