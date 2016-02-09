@@ -34,6 +34,13 @@ describe Draisine::SalesforceComparisons do
       expect(subject.salesforce_equals?(time, another)).to be_truthy
     end
 
+    it "uses epsilon comparison for floats" do
+      expect(subject.salesforce_equals?(1.01 + 0.99, 2.00)).to be_truthy
+      expect(subject.salesforce_equals?(2, 1.01 + 0.99)).to be_truthy
+      expect(subject.salesforce_equals?(2.00 + Draisine::SalesforceComparisons::EPSILON / 2, 2)).to be_truthy
+      expect(subject.salesforce_equals?(2.00 + Draisine::SalesforceComparisons::EPSILON * 2, 2)).to be_falsey
+    end
+
     it "doesn't try to coerce strings looking like numbers" do
       expect(subject.salesforce_equals?("10:00 +99:00", "10:00 +99:00")).to be_truthy
     end
