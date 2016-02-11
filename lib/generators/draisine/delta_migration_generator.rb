@@ -27,10 +27,14 @@ module Draisine
       @salesforce_object_name = salesforce_object_name || model.classify.demodulize
       @materialized_model = Draisine.salesforce_client.materialize(@salesforce_object_name)
       @mapper = Draisine::TypeMapper.new(@materialized_model.type_map)
-      @existing_columns = ActiveRecord::Base.connection.columns(@table_name).map(&:name)
-      @ar_col_defs = @mapper.active_record_column_defs
-                            .reject {|col_def| @existing_columns.include?(col_def.column_name) }
-
+      @existing_columns = ActiveRecord::Base.connection
+        .columns(@table_name)
+        .each_with_object({}) {|col, h| h[col.name] = Draisine::TypeMapper::ActiveRecordColumnDef.from_ar_column(col) }
+      @new_ar_col_defs = @mapper.active_record_column_defs
+        .reject {|col_def| @existing_columns.key?(col_def.column_name) }
+      @changed_ar_col_defs = @mapper.active_record_column_defs
+        .select {|col_def| @existing_columns.key?(col_def.column_name) }
+        .select {|col_def| different_column?(@existing_columns[col_def.column_name], col_def) }
       template "delta_migration.rb", @migration_file
     end
 
@@ -47,6 +51,11 @@ module Draisine
     # This is needed for rails destroy to work, since every time we generate a new name for our migration
     def existing_migration_name(migration_title)
       Dir.glob("#{Rails.root}/db/migrate/[0-9]*_#{migration_title.underscore}.rb").first
+    end
+
+    def different_column?(first, second)
+      first.column_type != second.column_type ||
+        (first.options[:limit] && second.options[:limit] && first.options[:limit] != second.options[:limit])
     end
   end
 end

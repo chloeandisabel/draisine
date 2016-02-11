@@ -81,8 +81,9 @@ module Databasedotcom
     module NumericFieldsExtensions
       def register_field(name, field)
         super
-        self.type_map[name][:scale] = field["scale"] if field["scale"]
-        self.type_map[name][:precision] = field["precision"] if field["precision"]
+        %w[scale precision length byteLength].each do |attr|
+          self.type_map[name][attr.underscore.to_sym] = field[attr] if field[attr]
+        end
       end
     end
 

@@ -1,7 +1,14 @@
 module Draisine
   class TypeMapper
     Type = Struct.new(:ar_type, :ar_options, :serialized, :array)
-    ActiveRecordColumnDef = Struct.new(:column_name, :column_type, :options)
+
+    ActiveRecordColumnDef = Struct.new(:column_name, :column_type, :options) do
+      def self.from_ar_column(ar_col)
+        new(ar_col.name, ar_col.type, { limit: ar_col.limit }.compact)
+      end
+    end
+
+    MAX_ALLOWED_STRING_TYPE_LENGTH = 40
 
     def self.type(ar_type, ar_options: {}, serialized: false, array: false)
       Type.new(ar_type, ar_options, serialized, array)
@@ -15,17 +22,25 @@ module Draisine
       end
     end
 
+    def self.determine_type_for_string(name, sf_schema)
+      if (length = sf_schema[:length]) && length > 0 && length <= MAX_ALLOWED_STRING_TYPE_LENGTH
+        type(:string, ar_options: { limit: length })
+      else
+        type(:text)
+      end
+    end
+
     # Apparently, mysql has a hard limit of 64k per row.
     # That's why we're using text types where we could also use strings.
     TYPES_MAP = {
       "boolean" => type(:boolean),
-      "string" => type(:text),
+      "string" => method(:determine_type_for_string),
       "reference" => type(:string, ar_options: { limit: 20 }),
       "picklist" => type(:binary, serialized: true),
-      "textarea" => type(:text),
-      "phone" => type(:text),
-      "email" => type(:text),
-      "url" => type(:text),
+      "textarea" => method(:determine_type_for_string),
+      "phone" => method(:determine_type_for_string),
+      "email" => method(:determine_type_for_string),
+      "url" => method(:determine_type_for_string),
       "int" => type(:integer),
       "date" => type(:date),
       "time" => type(:time),

@@ -14,6 +14,25 @@ describe Draisine::TypeMapper do
       expect(coldef.column_type).to eq :text
     end
 
+    it "uses text columns for strings without specified length" do
+      mapper = described_class.new({
+        "Name" => {:label => "Full name", :type => "string", :updateable? => true},
+        "SecondName" => {:label => "Second name", :type => "string", :updateable? => true, length: 0}
+      })
+      coldefs = mapper.active_record_column_defs
+      expect(coldefs.map(&:column_type)).to eq [:text, :text]
+    end
+
+    it "uses string columns for strings < 40 chars and text columns for strings > 40 chars" do
+      mapper = described_class.new({
+        "Short" => {:label => "Full name", :type => "string", :updateable? => true, length: Draisine::TypeMapper::MAX_ALLOWED_STRING_TYPE_LENGTH},
+        "Long" => {:label => "Second name", :type => "string", :updateable? => true, length: Draisine::TypeMapper::MAX_ALLOWED_STRING_TYPE_LENGTH + 1}
+      })
+      coldefs = mapper.active_record_column_defs
+      expect(coldefs.map(&:column_type)).to eq [:string, :text]
+      expect(coldefs.map {|coldef| coldef.options[:limit]}).to eq [Draisine::TypeMapper::MAX_ALLOWED_STRING_TYPE_LENGTH, nil]
+    end
+
     it "uses binary columns for picklists and multipicklists" do
       mapper = described_class.new({
         "PhoneType__c" => {
