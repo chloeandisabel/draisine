@@ -55,6 +55,10 @@ module Databasedotcom
       get_deleted(classname, start_date, end_date).fetch("deletedRecords", []).map {|r| r["id"] }
     end
 
+    def count(classname)
+      query("SELECT COUNT() FROM #{classname}").total_size
+    end
+
     protected
 
     def prepare_date_arg(date)
