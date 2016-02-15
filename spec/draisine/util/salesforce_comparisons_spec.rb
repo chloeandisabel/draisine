@@ -23,6 +23,10 @@ describe Draisine::SalesforceComparisons do
       expect(subject.salesforce_equals?("ABC\r\n", "ABC")).to be_truthy
     end
 
+    it "ignores control symbols" do
+      expect(subject.salesforce_equals?("hello\u0011", "hello")).to be_truthy
+    end
+
     it "coerces different time classes" do
       time = Time.current
       time1 = DateTime.parse(time.iso8601)

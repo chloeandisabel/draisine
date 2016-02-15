@@ -27,11 +27,7 @@ module Draisine
     end
 
     def normalize_string(string)
-      remove_emoji(string).gsub(/\s+/, "")
-    end
-
-    def remove_emoji(string)
-      string.chars.map {|c| c.ord > 65535 ? " " : c }.join
+      string.gsub(/\W/, "")
     end
 
     def fp_equals?(value, other)
