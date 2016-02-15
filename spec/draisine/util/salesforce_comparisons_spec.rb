@@ -7,17 +7,20 @@ describe Draisine::SalesforceComparisons do
     it "compares strings without lines endings" do
       expect(subject.salesforce_equals?("ABC", "abc")).to be_falsey
       expect(subject.salesforce_equals?("ABC", "ABC")).to be_truthy
-      expect(subject.salesforce_equals?("ABC ", "ABC")).to be_falsey
-      expect(subject.salesforce_equals?("ABC\r\n", "ABC\n")).to be_truthy
-      expect(subject.salesforce_equals?("ABC\r\n", "ABC")).to be_falsey
     end
 
     it "replaces emoji with spaces in compared strings" do
       expect(subject.salesforce_equals?("AAA 😬 AAA", "AAA AAA")).to be_truthy
+      str1 = "Good evening and Happy Valentine's Day!\n\nI processed this return for a customer in December, but I have yet to receive it.  It has a tracking number, but hasn't been updated since December either.  If there is anything we can do to get this to me so I can get it to my customer ASAP, that would be awesome!  I feel badly that it's been almost two months.\n\nThank you!\n💙💛\nLaura Gazda\nMerchandiser"
+      str2 = "Good evening and Happy Valentine's Day!\n\nI processed this return for a customer in December, but I have yet to receive it.  It has a tracking number, but hasn't been updated since December either.  If there is anything we can do to get this to me so I can get it to my customer ASAP, that would be awesome!  I feel badly that it's been almost two months.\n\nThank you!\n\nLaura Gazda\nMerchandiser"
+      expect(subject.salesforce_equals?(str1, str2)).to be_truthy
     end
 
-    it "compacts spaces" do
+    it "ignores whitespace" do
+      expect(subject.salesforce_equals?("ABC\r\n", "ABC\n")).to be_truthy
+      expect(subject.salesforce_equals?("ABC ", "ABC")).to be_truthy
       expect(subject.salesforce_equals?("AAA       AAA", "AAA AAA")).to be_truthy
+      expect(subject.salesforce_equals?("ABC\r\n", "ABC")).to be_truthy
     end
 
     it "coerces different time classes" do

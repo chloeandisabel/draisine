@@ -27,7 +27,7 @@ module Draisine
     end
 
     def normalize_string(string)
-      remove_emoji(string.gsub("\r\n", "\n")).gsub(/ +/, " ")
+      remove_emoji(string).gsub(/\s+/, "")
     end
 
     def remove_emoji(string)
