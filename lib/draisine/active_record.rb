@@ -85,6 +85,20 @@ module Draisine
       def salesforce_callback(type, salesforce_id, options = {})
         Draisine.sync_callback.call(type, salesforce_id, options)
       end
+
+      # Doesn't update record if found
+      def import_with_attrs(sf_id, attrs)
+        find_or_initialize_by(salesforce_id: sf_id) do |model|
+          model.salesforce_update_without_sync(attrs)
+        end
+      end
+
+      # Does update record if found
+      def import_or_update_with_attrs(sf_id, attrs, check_modstamp = false)
+        find_or_initialize_by(salesforce_id: sf_id).tap do |model|
+          model.salesforce_update_without_sync(attrs, check_modstamp)
+        end
+      end
     end
 
     attr_accessor :salesforce_skip_sync
@@ -171,6 +185,16 @@ module Draisine
         local_record_type: self.class.name,
         local_record_id: id
       }.merge(options))
+    end
+
+    def salesforce_update_without_sync(attrs, check_modstamp = false)
+      salesforce_skipping_sync do
+        modstamp = attrs["SystemModstamp"]
+        if !check_modstamp || !modstamp || !self.SystemModstamp || self.SystemModstamp < modstamp
+          salesforce_assign_attributes(attrs)
+          save!
+        end
+      end
     end
 
     protected

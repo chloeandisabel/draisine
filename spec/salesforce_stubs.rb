@@ -1,6 +1,14 @@
 shared_context "Salesforce stubs" do
   Collection = Struct.new(:items, :next_page) do
     include Enumerable
+    def first
+      items.first
+    end
+
+    def last
+      items.last
+    end
+
     def each(&block)
       items.each(&block)
     end
