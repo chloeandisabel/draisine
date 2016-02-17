@@ -37,6 +37,11 @@ describe Draisine::Concerns::AttributesMapping do
         subject.salesforce_assign_attributes('Gibberish' => 123)
       }.not_to raise_error
     end
+
+    it "works when assigning symbol-keyed attributes too" do
+      subject.salesforce_assign_attributes(FirstName: 'Mark')
+      expect(subject.first_name).to eq('Mark')
+    end
   end
 
   describe "#salesforce_reverse_mapped_attributes" do

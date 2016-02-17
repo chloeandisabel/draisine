@@ -24,7 +24,7 @@ module Draisine
       end
 
       def salesforce_assign_attributes(attributes)
-        salesforce_mapped_attributes(attributes).each do |key, value|
+        salesforce_mapped_attributes(attributes.with_indifferent_access).each do |key, value|
           method_name = "#{key}="
           if respond_to?(method_name)
             __send__(method_name, value)
