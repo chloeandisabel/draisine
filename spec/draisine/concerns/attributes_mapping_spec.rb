@@ -27,9 +27,9 @@ describe Draisine::Concerns::AttributesMapping do
       expect(subject.last_name).to eq('Abramov')
     end
 
-    it "assigns non-mapped attributes as is" do
+    it "doesn't assign non-mapped attributes" do
       subject.salesforce_assign_attributes('CustomAttribute__c' => 1)
-      expect(subject.CustomAttribute__c).to eq(1)
+      expect(subject.CustomAttribute__c).to be_nil
     end
 
     it "ignores attributes for which the setters don't exist" do
@@ -48,11 +48,12 @@ describe Draisine::Concerns::AttributesMapping do
       expect(result).to eq({ 'FirstName' => 'John', 'LastName' => 'Doe' })
     end
 
-    it "doesn't touch keys it doesn't know" do
+    it "ignores keys it doesn't know" do
       result = subject.salesforce_reverse_mapped_attributes({
+        'first_name' => 'John',
         'Gibberish' => 123
       })
-      expect(result).to eq('Gibberish' => 123)
+      expect(result).to eq('FirstName' => 'John')
     end
   end
 end

@@ -7,8 +7,10 @@ module Draisine
       include Draisine::ActiveRecordPlugin
 
       self.salesforce_object_name = options.fetch(:salesforce_object_name, name)
-      self.salesforce_synced_attributes = options.fetch(:synced_attributes, []).map(&:to_s)
-      self.salesforce_mapping = options.fetch(:mapping, {}).map {|k,v| [k.to_s, v.to_s] }.to_h
+      salesforce_synced_attributes = options.fetch(:synced_attributes, []).map(&:to_s)
+      default_mapping = salesforce_synced_attributes.map {|k| [k, k] }.to_h
+      mapping = options.fetch(:mapping, {}).map {|k,v| [k.to_s, v.to_s] }.to_h
+      self.salesforce_mapping = default_mapping.merge(mapping)
       self.salesforce_ops = Set.new(options.fetch(:operations, ALL_OPS))
       self.salesforce_sync_mode = options.fetch(:sync, true)
       non_audited_attrs = options.fetch(:non_audited_attributes, []).map(&:to_s)
@@ -26,10 +28,10 @@ module Draisine
     extend ActiveSupport::Concern
     include Draisine::Concerns::ArraySetter
     include Draisine::Concerns::AttributesMapping
+    include Draisine::Concerns::Import
 
     module ClassMethods
       attr_accessor :salesforce_object_name
-      attr_accessor :salesforce_synced_attributes
       attr_accessor :salesforce_audited_attributes
       attr_accessor :salesforce_ops
       attr_accessor :salesforce_sync_mode
@@ -85,20 +87,6 @@ module Draisine
       def salesforce_callback(type, salesforce_id, options = {})
         Draisine.sync_callback.call(type, salesforce_id, options)
       end
-
-      # Doesn't update record if found
-      def import_with_attrs(sf_id, attrs)
-        find_or_initialize_by(salesforce_id: sf_id) do |model|
-          model.salesforce_update_without_sync(attrs)
-        end
-      end
-
-      # Does update record if found
-      def import_or_update_with_attrs(sf_id, attrs, check_modstamp = false)
-        find_or_initialize_by(salesforce_id: sf_id).tap do |model|
-          model.salesforce_update_without_sync(attrs, check_modstamp)
-        end
-      end
     end
 
     attr_accessor :salesforce_skip_sync
@@ -110,7 +98,7 @@ module Draisine
     end
 
     def salesforce_inbound_update(attributes, add_blanks = true)
-      return unless salesforce_fresh_update?(attributes)
+      return unless should_process_inbound_update?(attributes)
       self.salesforce_skip_sync = true
       if add_blanks
         attributes = self.class.salesforce_synced_attributes
@@ -174,12 +162,6 @@ module Draisine
       self.salesforce_skip_sync = old_sync
     end
 
-    def salesforce_attributes
-      salesforce_reverse_mapped_attributes(attributes)
-        .with_indifferent_access
-        .slice(*self.class.salesforce_synced_attributes)
-    end
-
     def salesforce_callback(type, options = {})
       self.class.salesforce_callback(type, salesforce_id, {
         local_record_type: self.class.name,
@@ -187,20 +169,9 @@ module Draisine
       }.merge(options))
     end
 
-    def salesforce_update_without_sync(attributes, check_modstamp = false)
-      salesforce_skipping_sync do
-        modstamp = attributes["SystemModstamp"]
-        own_modstamp = self.attributes["SystemModstamp"]
-        if !check_modstamp || !modstamp || !own_modstamp || own_modstamp < modstamp
-          salesforce_assign_attributes(attributes)
-          save!
-        end
-      end
-    end
-
     protected
 
-    def salesforce_fresh_update?(attributes)
+    def should_process_inbound_update?(attributes)
       !salesforce_updated_at || !attributes['SystemModstamp'] ||
         Draisine.parse_time(attributes['SystemModstamp']) > salesforce_updated_at
     end

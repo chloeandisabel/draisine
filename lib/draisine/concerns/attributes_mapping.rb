@@ -8,15 +8,18 @@ module Draisine
       module ClassMethods
         attr_accessor :salesforce_mapping
 
+        def salesforce_synced_attributes
+          @salesforce_synced_attributes ||= salesforce_mapping.keys
+        end
+
         def salesforce_reverse_mapping
           @salesforce_reverse_mapping ||= salesforce_mapping.map(&:reverse).to_h
         end
       end
 
       def salesforce_mapped_attributes(attributes, mapping = self.class.salesforce_mapping)
-        attributes.each_with_object({}) do |(key, value), acc|
-          mapped_key = mapping.fetch(key) { key }
-          acc[mapped_key] = value
+        attributes.slice(*mapping.keys).each_with_object({}) do |(key, value), acc|
+          acc[mapping.fetch(key)] = value
         end
       end
 
@@ -31,6 +34,11 @@ module Draisine
 
       def salesforce_reverse_mapped_attributes(attributes)
         salesforce_mapped_attributes(attributes, self.class.salesforce_reverse_mapping)
+      end
+
+      def salesforce_attributes
+        salesforce_reverse_mapped_attributes(attributes)
+          .with_indifferent_access
       end
     end
   end
