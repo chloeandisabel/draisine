@@ -35,6 +35,7 @@ require "draisine/poller"
 
 require "draisine/concerns/array_setter"
 require "draisine/concerns/attributes_mapping"
+require "draisine/concerns/import"
 require "draisine/active_record"
 
 
