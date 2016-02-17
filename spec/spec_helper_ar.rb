@@ -11,6 +11,7 @@ ActiveRecord::Schema.define(:version => 1) do
     t.string :LastName
     t.string :custom_attribute
     t.string :non_sf_attribute
+    t.datetime :SystemModstamp
 
     t.string :salesforce_id
     t.datetime :salesforce_updated_at

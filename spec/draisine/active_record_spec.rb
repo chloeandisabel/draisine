@@ -148,4 +148,35 @@ describe Draisine::ActiveRecordPlugin, :model do
       subject.salesforce_outbound_delete
     end
   end
+
+
+  describe ".import_with_attrs" do
+    it "creates a record with corresponding attributes" do
+      model.import_with_attrs("A000", FirstName: "John", LastName: "Cena")
+      record = model.find_by_salesforce_id("A000")
+      expect(record).to be_present
+      expect(record.FirstName).to eq "John"
+    end
+
+    it "doesn't duplicate records with the same salesforce id" do
+      model.import_with_attrs("A000", FirstName: "John", LastName: "Cena")
+      expect do
+        model.find_by_salesforce_id("A000")
+      end.not_to change { model.count }
+    end
+
+    it "works with string keys too" do
+      model.import_with_attrs("A000", "FirstName" => "John")
+      record = model.find_by_salesforce_id("A000")
+      expect(record).to be_present
+      expect(record.FirstName).to eq "John"
+    end
+
+    it "ignores missing attributes" do
+      expect do
+        model.import_with_attrs("A000", Gibberish: "John")
+        model.import_with_attrs("A001", "Gibberish" => "John")
+      end.not_to raise_error
+    end
+  end
 end

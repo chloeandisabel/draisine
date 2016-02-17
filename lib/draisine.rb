@@ -31,6 +31,7 @@ require "draisine/type_mapper"
 require "draisine/soap_handler"
 require "draisine/engine"
 require "draisine/importer"
+require "draisine/poller"
 
 require "draisine/concerns/array_setter"
 require "draisine/concerns/attributes_mapping"

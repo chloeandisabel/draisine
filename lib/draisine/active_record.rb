@@ -187,11 +187,12 @@ module Draisine
       }.merge(options))
     end
 
-    def salesforce_update_without_sync(attrs, check_modstamp = false)
+    def salesforce_update_without_sync(attributes, check_modstamp = false)
       salesforce_skipping_sync do
-        modstamp = attrs["SystemModstamp"]
-        if !check_modstamp || !modstamp || !self.SystemModstamp || self.SystemModstamp < modstamp
-          salesforce_assign_attributes(attrs)
+        modstamp = attributes["SystemModstamp"]
+        own_modstamp = self.attributes["SystemModstamp"]
+        if !check_modstamp || !modstamp || !own_modstamp || own_modstamp < modstamp
+          salesforce_assign_attributes(attributes)
           save!
         end
       end
