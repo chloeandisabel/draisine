@@ -25,6 +25,7 @@ require "draisine/util/salesforce_comparisons"
 require "draisine/util/caching_client"
 
 require "draisine/query_mechanisms"
+require "draisine/partitioner"
 require "draisine/auditor"
 require "draisine/conflict_detector"
 require "draisine/conflict_resolver"

@@ -1,4 +1,3 @@
-require "draisine/auditor/partitioner"
 require "draisine/auditor/result"
 
 module Draisine

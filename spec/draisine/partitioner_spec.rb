@@ -1,6 +1,6 @@
 require "spec_helper_ar"
 
-describe Draisine::Auditor::Partitioner do
+describe Draisine::Partitioner do
   include_context "Salesforce stubs"
 
   describe ".partition" do
@@ -41,7 +41,7 @@ describe Draisine::Auditor::Partitioner do
       allow(sf_client).to receive(:get_deleted_ids).and_return([])
       partitions = described_class.partition(Lead, start_date, end_date)
       partition = partitions.first
-      expect(partition).to be_a(Draisine::Auditor::Partition)
+      expect(partition).to be_a(Draisine::Partition)
     end
   end
 end
