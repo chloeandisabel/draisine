@@ -1,14 +1,12 @@
 module Draisine
   class Poller
-    require "draisine/poller/mechanisms"
-
     Result = Struct.new(:salesforce_count, :db_count, :created_count, :updated_count, :deleted_count)
 
     attr_reader :model_class, :mechanism
 
     def initialize(model_class, mechanism = :default)
       @model_class = model_class
-      @mechanism = Mechanisms.fetch(mechanism).new(model_class, client)
+      @mechanism = QueryMechanisms.fetch(mechanism).new(model_class, client)
     end
 
     def poll(start_date, end_date = Time.now, import_created: true, import_updated: false, import_deleted: true)
