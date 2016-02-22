@@ -6,7 +6,7 @@ module Draisine
 
     def initialize(model_class, mechanism = :default)
       @model_class = model_class
-      @mechanism = QueryMechanisms.fetch(mechanism).new(model_class, client)
+      @mechanism = QueryMechanisms.fetch(mechanism).new(model_class)
     end
 
     def poll(start_date, end_date = Time.now, import_created: true, import_updated: false, import_deleted: true)

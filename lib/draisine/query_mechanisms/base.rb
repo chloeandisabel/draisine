@@ -2,7 +2,7 @@ module Draisine
   module QueryMechanisms
     class Base
       attr_reader :model_class, :client
-      def initialize(model_class, client)
+      def initialize(model_class, client = Draisine.salesforce_client)
         @model_class = model_class
         @client = client
       end

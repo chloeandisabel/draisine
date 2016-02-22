@@ -16,14 +16,20 @@ module Draisine
   end
 
   class Partitioner
-    def self.partition(*args)
-      new.partition(*args)
+    def self.partition(model_class, start_date, end_date, partition_size = 100, mechanism = :default)
+      new(model_class, mechanism).partition(start_date, end_date, partition_size)
     end
 
-    def partition(model_class, start_date, end_date, partition_size = 100)
-      updated_ids = get_updated_ids(model_class, start_date, end_date)
-      deleted_ids = get_deleted_ids(model_class, start_date, end_date)
-      unpersisted_ids = get_unpersisted_ids(model_class, start_date, end_date)
+    attr_reader :model_class, :mechanism
+    def initialize(model_class, mechanism = :default)
+      @model_class = model_class
+      @mechanism = QueryMechanisms.fetch(mechanism).new(model_class)
+    end
+
+    def partition(start_date, end_date, partition_size = 100)
+      updated_ids = get_updated_ids(start_date, end_date)
+      deleted_ids = get_deleted_ids(start_date, end_date)
+      unpersisted_ids = get_unpersisted_ids(start_date, end_date)
 
       # if anyone knows how to do this packing procedure better, please tell me
       all_ids = updated_ids.map {|id| [:updated, id] } +
@@ -42,21 +48,22 @@ module Draisine
 
     protected
 
-    def get_updated_ids(model_class, start_date, end_date)
-      updated_ids = client.get_updated_ids(model_class.salesforce_object_name, start_date, end_date)
-      updated_ids += model_class.where("updated_at >= ? AND updated_at <= ?", start_date, end_date)
-        .pluck(:salesforce_id).compact
-      updated_ids.uniq
+    def get_updated_ids(start_date, end_date)
+      mechanism.get_updated_ids(start_date, end_date) |
+        model_class
+          .where("updated_at >= ? AND updated_at <= ?", start_date, end_date)
+          .uniq.pluck(:salesforce_id).compact
     end
 
-    def get_deleted_ids(model_class, start_date, end_date)
-      client.get_deleted_ids(model_class.salesforce_object_name, start_date, end_date)
+    def get_deleted_ids(start_date, end_date)
+      mechanism.get_deleted_ids(start_date, end_date)
     end
 
-    def get_unpersisted_ids(model_class, start_date, end_date)
-      model_class.where("salesforce_id IS NULL OR salesforce_id = ?", '')
-                 .where("updated_at >= ? and updated_at <= ?", start_date, end_date)
-                 .pluck(:id)
+    def get_unpersisted_ids(start_date, end_date)
+      model_class
+        .where("salesforce_id IS NULL OR salesforce_id = ?", '')
+        .where("updated_at >= ? and updated_at <= ?", start_date, end_date)
+        .pluck(:id)
     end
 
     def client
