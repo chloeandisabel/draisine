@@ -19,7 +19,7 @@ module Databasedotcom
 
     # Returns a list of updated sobject ids for provided date range
     # reference: https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_getupdated.htm?search_text=getUpdated
-    def get_updated(classname, start_date, end_date = Time.now)
+    def get_updated(classname, start_date, end_date = Time.current)
       result = http_get("/services/data/v#{self.version}/sobjects/#{classname}/updated",
                         start: prepare_date_arg(start_date),
                         end: prepare_date_arg(end_date))
@@ -32,13 +32,13 @@ module Databasedotcom
       end
     end
 
-    def get_updated_ids(classname, start_date, end_date = Time.now)
+    def get_updated_ids(classname, start_date, end_date = Time.current)
       get_updated(classname, start_date, end_date).fetch("ids", [])
     end
 
     # Returns a list of updated sobject ids for provided date range
     # reference: https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_getdeleted.htm?search_text=getUpdated
-    def get_deleted(classname, start_date, end_date = Time.now)
+    def get_deleted(classname, start_date, end_date = Time.current)
       result = http_get("/services/data/v#{self.version}/sobjects/#{classname}/deleted",
                         start: prepare_date_arg(start_date),
                         end: prepare_date_arg(end_date))
@@ -51,7 +51,7 @@ module Databasedotcom
       end
     end
 
-    def get_deleted_ids(classname, start_date, end_date = Time.now)
+    def get_deleted_ids(classname, start_date, end_date = Time.current)
       get_deleted(classname, start_date, end_date).fetch("deletedRecords", []).map {|r| r["id"] }
     end
 

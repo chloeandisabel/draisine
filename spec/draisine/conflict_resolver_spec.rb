@@ -88,13 +88,13 @@ describe Draisine::ConflictResolver do
   describe "#remote_push" do
     it "pushes the local record attributes into salesforce" do
       expect(sf_client).to receive(:http_patch)
-      allow(sf_client).to receive(:http_get).and_return(double(body: { SystemModstamp: Time.now }.to_json))
+      allow(sf_client).to receive(:http_get).and_return(double(body: { SystemModstamp: Time.current }.to_json))
       subject.remote_push
     end
 
     it "allows to recreate a model remotely" do
       expect(sf_client).to receive(:http_post).and_return(double(body: { id: 'A002' }.to_json))
-      allow(sf_client).to receive(:http_get).and_return(double(body: { SystemModstamp: Time.now }.to_json))
+      allow(sf_client).to receive(:http_get).and_return(double(body: { SystemModstamp: Time.current }.to_json))
       lead.update_column(:salesforce_id, nil)
       subject.remote_push
       lead.reload
@@ -115,7 +115,7 @@ describe Draisine::ConflictResolver do
     before do
       allow(sf_client).to receive(:http_patch)
       allow(sf_client).to receive(:http_get).with(kind_of(String), fields: "SystemModstamp")
-        .and_return(double(body: { SystemModstamp: Time.now }.to_json))
+        .and_return(double(body: { SystemModstamp: Time.current }.to_json))
     end
 
     it "pushes local attrs to merge" do

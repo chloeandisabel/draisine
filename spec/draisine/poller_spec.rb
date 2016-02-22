@@ -7,7 +7,7 @@ describe Draisine::Poller do
 
   let(:model_class) { Lead }
   let(:start_date) { 10.minutes.ago }
-  let(:end_date) { Time.now }
+  let(:end_date) { Time.current }
 
   before do
     salesforce_stub_out_leads!
@@ -134,7 +134,8 @@ describe Draisine::Poller do
         MaterializedModelInstance.new("FirstName" => "John", "Id" => "A001")
       ])
       partition = Draisine::Partition.new(model_class, start_date, end_date, ["A001"])
-      subject.run_partition(partition)
+      expect { subject.run_partition(partition) }.to change { model_class.count }.by(1)
+
     end
   end
 end

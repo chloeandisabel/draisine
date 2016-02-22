@@ -6,7 +6,7 @@ describe Draisine::OutboundUpdateJob do
 
   before do
     allow(Lead).to receive(:salesforce_syncer).and_return(syncer)
-    allow(syncer).to receive(:get_system_modstamp).and_return(Time.now)
+    allow(syncer).to receive(:get_system_modstamp).and_return(Time.current)
   end
 
   it "sends changed fields, including nulls" do

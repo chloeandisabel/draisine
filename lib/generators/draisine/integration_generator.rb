@@ -42,7 +42,7 @@ module Draisine
     protected
 
     def migration_number
-      Time.now.utc.strftime("%Y%m%d%H%M%S")
+      Time.current.utc.strftime("%Y%m%d%H%M%S")
     end
 
     # This is needed for rails destroy to work, since every time we generate a new name for our migration
