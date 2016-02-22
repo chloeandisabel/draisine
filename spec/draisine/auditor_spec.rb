@@ -18,7 +18,7 @@ describe Draisine::Auditor do
 
   describe ".run" do
     it "returns successful result if no discrepancies were found" do
-      result = described_class.run(Lead)
+      result = described_class.run(model_class: Lead)
       expect(result).to be_success
     end
 
@@ -26,14 +26,14 @@ describe Draisine::Auditor do
       allow(sf_client).to receive(:get_deleted_ids).and_return(['D000'])
       lead = Lead.find_by_salesforce_id('D000')
       lead.salesforce_skipping_sync(&:destroy)
-      result = described_class.run(Lead)
+      result = described_class.run(model_class: Lead)
       expect(result).to be_success
       expect(result.discrepancies).to be_empty
     end
 
     it "returns failure when records are deleted from salesforce and kept locally" do
       allow(sf_client).to receive(:get_deleted_ids).and_return(['D000'])
-      result = described_class.run(Lead)
+      result = described_class.run(model_class: Lead)
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
@@ -46,7 +46,7 @@ describe Draisine::Auditor do
 
     it "returns failure when there are local records without salesforce_id" do
       lead = Lead.create_without_callbacks!({})
-      result = described_class.run(Lead)
+      result = described_class.run(model_class: Lead)
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
@@ -66,7 +66,7 @@ describe Draisine::Auditor do
           'SystemModstamp' => modstamp
         })
       ]))
-      result = described_class.run(Lead)
+      result = described_class.run(model_class: Lead)
       expect(result).to be_success
     end
 
@@ -82,7 +82,7 @@ describe Draisine::Auditor do
       ]))
       lead = Lead.find_by_salesforce_id('A000')
       lead.salesforce_skipping_sync(&:destroy)
-      result = described_class.run(Lead)
+      result = described_class.run(model_class: Lead)
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
@@ -101,7 +101,7 @@ describe Draisine::Auditor do
           'SystemModstamp' => modstamp
         })
       ]))
-      result = described_class.run(Lead)
+      result = described_class.run(model_class: Lead)
       expect(result).not_to be_success
       expect(result.discrepancies).to have(1).element
       discrepancy = result.discrepancies[0]
@@ -126,7 +126,7 @@ describe Draisine::Auditor do
       ]))
       lead = Lead.find_by_salesforce_id('A000')
       lead.touch
-      result = described_class.run(Lead, 1.minute.ago, Time.current)
+      result = described_class.run(model_class: Lead, start_date: 1.minute.ago, end_date: Time.current)
       expect(result).not_to be_success
       expect(result.discrepancies).to have_exactly(1).element
       discrepancy = result.discrepancies[0]
@@ -154,7 +154,7 @@ describe Draisine::Auditor do
       ]))
       allow(Lead).to receive(:salesforce_synced_attributes).and_return(["FirstName", "LastName"])
       allow(Lead).to receive(:salesforce_audited_attributes).and_return(["FirstName"])
-      result = described_class.run(Lead)
+      result = described_class.run(model_class: Lead)
       expect(result).to be_success
     end
   end

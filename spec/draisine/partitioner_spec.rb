@@ -15,7 +15,7 @@ describe Draisine::Partitioner do
     end
 
     it "produces partitions for updated ids and deleted ids" do
-      partitions = described_class.partition(Lead, start_date, end_date)
+      partitions = described_class.partition(model_class: Lead, start_date: start_date, end_date: end_date)
       expect(partitions).to have(1).element
       partition = partitions.first
       expect(partition.updated_ids).to eq(['A000', 'A001'])
@@ -23,7 +23,7 @@ describe Draisine::Partitioner do
     end
 
     it "splits partitions if neccessary" do
-      partitions = described_class.partition(Lead, start_date, end_date, 2)
+      partitions = described_class.partition(model_class: Lead, start_date: start_date, end_date: end_date, partition_size: 2)
       expect(partitions).to have(2).elements
       expect(partitions.flat_map(&:updated_ids).compact).to eq(['A000', 'A001'])
       expect(partitions.flat_map(&:deleted_ids).compact).to eq(['D000'])
@@ -31,7 +31,7 @@ describe Draisine::Partitioner do
 
     it "includes unpersisted records ids" do
       lead = Lead.create_without_callbacks!(salesforce_id: '')
-      partition = described_class.partition(Lead, start_date, end_date).first
+      partition = described_class.partition(model_class: Lead, start_date: start_date, end_date: end_date).first
       expect(partition.unpersisted_ids).to eq([lead.id])
     end
 
@@ -39,7 +39,7 @@ describe Draisine::Partitioner do
       Lead.delete_all
       allow(sf_client).to receive(:get_updated_ids).and_return([])
       allow(sf_client).to receive(:get_deleted_ids).and_return([])
-      partitions = described_class.partition(Lead, start_date, end_date)
+      partitions = described_class.partition(model_class: Lead, start_date: start_date, end_date: end_date)
       partition = partitions.first
       expect(partition).to be_a(Draisine::Partition)
     end

@@ -16,8 +16,8 @@ module Draisine
   end
 
   class Partitioner
-    def self.partition(model_class, start_date, end_date, partition_size = 100, mechanism = :default)
-      new(model_class, mechanism).partition(start_date, end_date, partition_size)
+    def self.partition(model_class:, start_date:, end_date:, partition_size: 100, mechanism: :default)
+      new(model_class, mechanism).partition(start_date, end_date, partition_size: partition_size)
     end
 
     attr_reader :model_class, :mechanism
@@ -26,7 +26,7 @@ module Draisine
       @mechanism = QueryMechanisms.fetch(mechanism).new(model_class)
     end
 
-    def partition(start_date, end_date, partition_size = 100)
+    def partition(start_date, end_date, partition_size: 100)
       updated_ids = get_updated_ids(start_date, end_date)
       deleted_ids = get_deleted_ids(start_date, end_date)
       unpersisted_ids = get_unpersisted_ids(start_date, end_date)
