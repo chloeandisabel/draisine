@@ -2,7 +2,7 @@ require "draisine/auditor/result"
 
 module Draisine
   class Auditor
-    def self.run(model_class: model_class, start_date: Time.now.beginning_of_day, end_date: Time.now, mechanism: :default)
+    def self.run(model_class:, start_date: Time.current.beginning_of_day, end_date: Time.current, mechanism: :default)
       # TODO: instead of using one huge partition, combine multiple results into one
       partitions = partition(model_class: model_class, start_date: start_date, end_date: end_date, partition_size: 10**12, mechanism: mechanism)
       run_partition(partitions.first)
