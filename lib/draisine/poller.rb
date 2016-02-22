@@ -1,70 +1,14 @@
 module Draisine
   class Poller
+    require "draisine/poller/mechanisms"
+
     Result = Struct.new(:salesforce_count, :db_count, :created_count, :updated_count, :deleted_count)
-
-    class PollingMechanism
-      attr_reader :model_class, :client
-      def initialize(model_class, client)
-        @model_class = model_class
-        @client = client
-      end
-
-      def salesforce_object_name
-        model_class.salesforce_object_name
-      end
-    end
-
-    class DefaultMechanism < PollingMechanism
-      def get_updated_ids(start_date, end_date)
-        client.get_updated_ids(salesforce_object_name, start_date, end_date)
-      end
-
-      def get_deleted_ids(start_date, end_date)
-        client.get_deleted_ids(salesforce_object_name, start_date, end_date)
-      end
-    end
-
-    class SystemModstampMechanism < PollingMechanism
-      def get_updated_ids(start_date, end_date)
-        response = client.query <<-EOQ
-        SELECT Id FROM #{salesforce_object_name}
-        WHERE SystemModstamp >= #{start_date.iso8601}
-        AND SystemModstamp <= #{end_date.iso8601}
-        EOQ
-        response.map(&:Id)
-      end
-
-      def get_deleted_ids(start_date, end_date)
-        []
-      end
-    end
-
-    class LastModifiedDateMechanism < PollingMechanism
-      def get_updated_ids(start_date, end_date)
-        response = client.query <<-EOQ
-        SELECT Id FROM #{salesforce_object_name}
-        WHERE LastModifiedDate >= #{start_date.iso8601}
-        AND LastModifiedDate <= #{end_date.iso8601}
-        EOQ
-        response.map(&:Id)
-      end
-
-      def get_deleted_ids(start_date, end_date)
-        []
-      end
-    end
 
     attr_reader :model_class, :mechanism
 
-    MECHANISMS = {
-      default: DefaultMechanism,
-      system_modstamp: SystemModstampMechanism,
-      last_modified_date: LastModifiedDateMechanism
-    }
-
     def initialize(model_class, mechanism = :default)
       @model_class = model_class
-      @mechanism = MECHANISMS.fetch(mechanism).new(model_class, client)
+      @mechanism = Mechanisms.fetch(mechanism).new(model_class, client)
     end
 
     def poll(start_date, end_date = Time.now, import_created: true, import_updated: false, import_deleted: true)
