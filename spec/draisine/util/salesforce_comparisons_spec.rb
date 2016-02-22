@@ -35,7 +35,7 @@ describe Draisine::SalesforceComparisons do
     end
 
     it "has 1s precision" do
-      time = Time.current
+      time = Time.current.round
       another = time + 0.001.seconds
       expect(time).not_to eq(another)
       expect(subject.salesforce_equals?(time, another)).to be_truthy
