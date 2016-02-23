@@ -12,7 +12,7 @@ module Draisine
       new(partition).run
     end
 
-    def self.partition(model_class:, start_date:, end_date:, partition_size: 100, mechanism:)
+    def self.partition(model_class:, start_date:, end_date:, partition_size: 100, mechanism: :default)
       Partitioner.partition(
         model_class: model_class,
         start_date: start_date,
