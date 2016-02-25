@@ -1,6 +1,6 @@
 module Draisine
   class JobBase < ActiveJob::Base
-    queue_as :salesforce_job
+    queue_as :draisine_job
 
     rescue_from Exception do |ex|
       logger.error "#{ex.class}: #{ex}\n#{ex.backtrace.join("\n")}"
