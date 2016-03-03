@@ -64,5 +64,9 @@ describe Draisine::SalesforceComparisons do
       expect(subject.salesforce_equals?(123, 123)).to be_truthy
       expect(subject.salesforce_equals?(123, 456)).to be_falsey
     end
+
+    it "doesn't break on invalid utf-8" do
+      expect(subject.salesforce_equals?("\xFF", "FF")).to be_falsey
+    end
   end
 end

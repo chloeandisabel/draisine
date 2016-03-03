@@ -5,8 +5,11 @@ module Draisine
     module_function
 
     def salesforce_equals?(value, other)
+      value = salesforce_cleanup(value)
+      other = salesforce_cleanup(other)
       value = salesforce_coerce(value)
       other = salesforce_coerce(other)
+
       return fp_equals?(value, other) if numeric?(value) && numeric?(other)
       return value == other if value.class != other.class
 
@@ -15,6 +18,15 @@ module Draisine
         normalize_string(value) == normalize_string(other)
       else
         value == other
+      end
+    end
+
+    def salesforce_cleanup(value)
+      case value
+      when String
+        value.encode("UTF-8", invalid: :replace, undef: :replace, replace: "?")
+      else
+        value
       end
     end
 
