@@ -27,6 +27,7 @@ module Draisine
         salesforce_mapped_attributes(attributes.with_indifferent_access).each do |key, value|
           method_name = "#{key}="
           if respond_to?(method_name)
+            value = Draisine::SalesforceComparisons.salesforce_cleanup(value)
             __send__(method_name, value)
           end
         end

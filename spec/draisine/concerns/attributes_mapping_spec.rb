@@ -42,6 +42,13 @@ describe Draisine::Concerns::AttributesMapping do
       subject.salesforce_assign_attributes(FirstName: 'Mark')
       expect(subject.first_name).to eq('Mark')
     end
+
+    it "cleans up utf strings" do
+      expect {
+        subject.salesforce_assign_attributes(FirstName: "\xFFMark\xFF")
+      }.not_to raise_error
+      expect(subject.first_name =~ /Mark/).to be_truthy
+    end
   end
 
   describe "#salesforce_reverse_mapped_attributes" do
