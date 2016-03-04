@@ -101,14 +101,6 @@ describe Draisine::Poller do
         allow(sf_client).to receive(:count).and_return(0)
       end
 
-      it "returns salesforce and db counters after running" do
-        expect(sf_client).to receive(:count).and_return(42)
-        model_class.create_without_callbacks!(salesforce_id: "A001")
-        result = subject.poll(model_class: model_class, start_date: start_date, end_date: end_date)
-        expect(result.salesforce_count).to eq(42)
-        expect(result.db_count).to eq(1)
-      end
-
       it "returns a number of salesforce created, updated and deleted records" do
         model_class.create_without_callbacks!(salesforce_id: "A001")
         model_class.create_without_callbacks!(salesforce_id: "A002")

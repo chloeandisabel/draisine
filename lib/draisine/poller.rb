@@ -1,6 +1,6 @@
 module Draisine
   class Poller
-    Result = Struct.new(:salesforce_count, :db_count, :created_count, :updated_count, :deleted_count)
+    Result = Struct.new(:created_count, :updated_count, :deleted_count)
 
     class <<self
       def run(model_class:, mechanism: :default, start_date:, end_date: Time.current, **run_args)
@@ -47,8 +47,6 @@ module Draisine
       deleted_count = import_deletes if import_deleted
 
       Result.new(
-        client.count(salesforce_object_name),
-        model_class.count,
         created_count,
         updated_count,
         deleted_count)
