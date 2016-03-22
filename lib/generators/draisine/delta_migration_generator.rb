@@ -8,14 +8,24 @@ module Draisine
     Generates a migration for missing columns for given model
     DESC
 
-    argument :model, type: :string,
-                     banner: "ModelName",
-                     desc: "Model name for active record (e.g. Lead)",
-                     required: true
-    argument :salesforce_object_name, type: :string,
-                     banner: "SalesforceObjectName",
-                     desc: "Salesforce object name (inferred from ModelName by default)",
-                     required: false
+    argument :model,
+      type: :string,
+      banner: "ModelName",
+      desc: "Model name for active record (e.g. Lead)",
+      required: true
+
+    argument :salesforce_object_name,
+      type: :string,
+      banner: "SalesforceObjectName",
+      desc: "Salesforce object name (inferred from ModelName by default)",
+      required: false
+
+    class_option :fields,
+      type: :array,
+      banner: "Field1,Field2",
+      desc: "Fields to generate (would otherwise generate all missing fields)",
+      required: false
+
     def generate
       @model_name = model.classify.singularize
       @model_file = "app/models/#{model.underscore.singularize}.rb"
@@ -23,7 +33,7 @@ module Draisine
       @migration_title = "DeltaUpdate#{model.classify.gsub('::', '').pluralize}#{migration_uid}"
       @migration_file = existing_migration_name(@migration_title) ||
                         "db/migrate/#{migration_number}_#{@migration_title.underscore}.rb"
-
+      @fields = (options["fields"] || []).map(&:downcase)
       @salesforce_object_name = salesforce_object_name || model.classify.demodulize
       @materialized_model = Draisine.salesforce_client.materialize(@salesforce_object_name)
       @mapper = Draisine::TypeMapper.new(@materialized_model.type_map)
@@ -32,9 +42,11 @@ module Draisine
         .each_with_object({}) {|col, h| h[col.name] = Draisine::TypeMapper::ActiveRecordColumnDef.from_ar_column(col) }
       @new_ar_col_defs = @mapper.active_record_column_defs
         .reject {|col_def| @existing_columns.key?(col_def.column_name) }
+        .select {|col_def| column_in_required_fields?(col_def.column_name) }
       @changed_ar_col_defs = @mapper.active_record_column_defs
         .select {|col_def| @existing_columns.key?(col_def.column_name) }
         .select {|col_def| different_column?(@existing_columns[col_def.column_name], col_def) }
+        .select {|col_def| column_in_required_fields?(col_def.column_name) }
       template "delta_migration.rb", @migration_file
     end
 
@@ -46,6 +58,10 @@ module Draisine
 
     def migration_uid
       Time.current.utc.strftime("%Y%m%d")
+    end
+
+    def column_in_required_fields?(column)
+      @fields.empty? || @fields.include?(column.to_s.downcase)
     end
 
     # This is needed for rails destroy to work, since every time we generate a new name for our migration
