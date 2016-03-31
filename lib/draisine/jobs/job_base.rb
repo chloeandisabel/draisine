@@ -2,7 +2,9 @@ module Draisine
   class JobBase < ActiveJob::Base
     queue_as :draisine_job
 
-    rescue_from Exception do |ex|
+    def perform(*args)
+      _perform(*args)
+    rescue Exception => ex
       logger.error "#{ex.class}: #{ex}\n#{ex.backtrace.join("\n")}"
 
       if retry_attempt < retries_count
@@ -12,8 +14,10 @@ module Draisine
       else
         logger.error "Too many attempts, no more retries"
         Draisine.job_error_handler.call(ex, self, arguments)
-        raise ex
       end
+    end
+
+    def _perform(*args)
     end
 
     def retries_count

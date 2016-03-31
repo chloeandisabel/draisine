@@ -1,6 +1,6 @@
 module Draisine
   class OutboundDeleteJob < Draisine::JobBase
-    def perform(instance)
+    def _perform(instance)
       instance.salesforce_outbound_delete
     end
   end

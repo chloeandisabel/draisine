@@ -37,7 +37,7 @@ EOM
   end
 
   def self.job_error_handler
-    @job_error_handler ||= proc {|error, job_instance, args| }
+    @job_error_handler ||= proc {|error, job_instance, args| raise error }
   end
 
   def self.job_error_handler=(handler)
