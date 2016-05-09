@@ -35,6 +35,13 @@ describe Draisine::SoapHandler do
       expect(Draisine).to receive(:organization_id).and_return('mismatching_id')
       expect { subject.update(example_params) }.to raise_error(ArgumentError)
     end
+
+    it "allows setting custom handler for invalid organization id" do
+      expect(Draisine).to receive(:organization_id).and_return('mismatching_id')
+      expect(Draisine).to receive(:invalid_organization_handler).and_return(-> (message) { @message = message })
+      expect { subject.update(example_params) }.not_to raise_error
+      expect(@message).to eq(example_params)
+    end
   end
 
   describe "#delete" do
