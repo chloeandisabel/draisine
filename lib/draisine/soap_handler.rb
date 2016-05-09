@@ -47,7 +47,7 @@ EOF
       unless diggable_to?(message, ['Envelope', 'Body', 'notifications', 'OrganizationId']) &&
              message['Envelope']['Body']['notifications']['OrganizationId'] == Draisine.organization_id
 
-        fail ArgumentError, "invalid organization id in the inbound message from salesforce"
+        Draisine.invalid_organization_handler.call(message)
       end
     end
 

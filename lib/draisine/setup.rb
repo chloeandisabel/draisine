@@ -60,6 +60,14 @@ EOM
     @job_retry_attempts = count
   end
 
+  def self.invalid_organization_handler
+    @invalid_organization_handler ||= proc {|message| fail ArgumentError, "invalid organization id in the inbound message from salesforce" }
+  end
+
+  def self.invalid_organization_handler=(handler)
+    @invalid_organization_handler = handler
+  end
+
   # https://help.salesforce.com/apex/HTViewSolution?language=en_US&id=000003652
   def self.allowed_ip_ranges
     @allowed_ip_ranges ||= [
