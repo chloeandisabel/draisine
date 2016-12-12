@@ -61,7 +61,7 @@ EOM
   end
 
   def self.invalid_organization_handler
-    @invalid_organization_handler ||= proc {|message| fail ArgumentError, "invalid organization id in the inbound message from salesforce" }
+    @invalid_organization_handler ||= proc {|message| fail Draisine::SoapHandler::InvalidOrganizationError, "invalid organization id in the inbound message from salesforce" }
   end
 
   def self.invalid_organization_handler=(handler)

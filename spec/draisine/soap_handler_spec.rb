@@ -33,13 +33,14 @@ describe Draisine::SoapHandler do
 
     it "checks organization id on the message" do
       expect(Draisine).to receive(:organization_id).and_return('mismatching_id')
-      expect { subject.update(example_params) }.to raise_error(ArgumentError)
+      expect { subject.update(example_params) }.to raise_error(Draisine::SoapHandler::InvalidOrganizationError)
     end
 
     it "allows setting custom handler for invalid organization id" do
       expect(Draisine).to receive(:organization_id).and_return('mismatching_id')
       expect(Draisine).to receive(:invalid_organization_handler).and_return(-> (message) { @message = message })
       expect { subject.update(example_params) }.not_to raise_error
+      expect(Lead.exists?(salesforce_id: '00Q7A000001CYIAUA4')).to be false
       expect(@message).to eq(example_params)
     end
   end
@@ -60,7 +61,7 @@ describe Draisine::SoapHandler do
 
     it "checks organization id on the message" do
       expect(Draisine).to receive(:organization_id).and_return('mismatching_id')
-      expect { subject.delete(example_params) }.to raise_error(ArgumentError)
+      expect { subject.delete(example_params) }.to raise_error(Draisine::SoapHandler::InvalidOrganizationError)
     end
   end
 end

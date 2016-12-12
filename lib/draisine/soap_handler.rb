@@ -1,5 +1,7 @@
 module Draisine
   class SoapHandler
+    InvalidOrganizationError = Class.new(StandardError)
+
     def initialize
     end
 
@@ -11,6 +13,8 @@ module Draisine
         klass.salesforce_on_inbound_update(sobject)
       end
       xml_response
+    rescue InvalidOrganizationError => e
+      Draisine.invalid_organization_handler.call(message)
     end
 
     def delete(message)
@@ -22,6 +26,8 @@ module Draisine
         klass.salesforce_on_inbound_delete(id)
       end
       xml_response
+    rescue InvalidOrganizationError => e
+      Draisine.invalid_organization_handler.call(message)
     end
 
     def xml_response
@@ -46,16 +52,15 @@ EOF
     def assert_valid_organization_id!(message)
       unless diggable_to?(message, ['Envelope', 'Body', 'notifications', 'OrganizationId']) &&
              message['Envelope']['Body']['notifications']['OrganizationId'] == Draisine.organization_id
-
-        Draisine.invalid_organization_handler.call(message)
+        fail InvalidOrganizationError, "a message from invalid organization id received"
       end
     end
 
     def assert_valid_message!(message)
-      assert_valid_organization_id!(message)
       unless diggable_to?(message, ['Envelope', 'Body', 'notifications', 'Notification'])
         fail ArgumentError, "malformed xml inbound message from salesforce"
       end
+      assert_valid_organization_id!(message)
     end
 
     def diggable_to?(hash, path)
