@@ -1,3 +1,6 @@
+require 'active_support/core_ext/hash/conversions'
+require 'active_support/core_ext/hash/indifferent_access'
+
 module Draisine
   class SoapHandler
     InvalidOrganizationError = Class.new(StandardError)
@@ -5,7 +8,9 @@ module Draisine
     def initialize
     end
 
-    def update(message)
+    def update(message_xml)
+      message = parse(message_xml)
+
       assert_valid_message!(message)
       extract_sobjects(message).each do |sobject|
         type = sobject.fetch('xsi:type').sub('sf:', '')
@@ -17,7 +22,9 @@ module Draisine
       Draisine.invalid_organization_handler.call(message)
     end
 
-    def delete(message)
+    def delete(message_xml)
+      message = parse(message_xml)
+
       assert_valid_message!(message)
       extract_sobjects(message).each do |sobject|
         type = sobject.fetch('Object_Type__c')
@@ -42,6 +49,17 @@ EOF
     end
 
     protected
+
+    def parse(message_xml)
+      case message_xml
+      when Hash
+        message_xml
+      when String
+        Hash.from_xml(message_xml)
+      else
+        raise ArgumentError
+      end
+    end
 
     def extract_sobjects(message)
       Array.wrap(message['Envelope']['Body']['notifications']['Notification']).map do |sobject|

@@ -6,7 +6,7 @@ describe Draisine::SoapHandler do
   end
 
   describe "#update" do
-    let(:example_params) { Hash.from_xml(File.read('spec/fixtures/soap_inbound_update_lead.xml')) }
+    let(:example_params) { File.read('spec/fixtures/soap_inbound_update_lead.xml') }
     subject { described_class.new }
 
     it "creates a record with provided parameters if it doesn't exist" do
@@ -41,12 +41,12 @@ describe Draisine::SoapHandler do
       expect(Draisine).to receive(:invalid_organization_handler).and_return(-> (message) { @message = message })
       expect { subject.update(example_params) }.not_to raise_error
       expect(Lead.exists?(salesforce_id: '00Q7A000001CYIAUA4')).to be false
-      expect(@message).to eq(example_params)
+      expect(@message).to eq(Hash.from_xml(example_params))
     end
   end
 
   describe "#delete" do
-    let(:example_params) { Hash.from_xml(File.read('spec/fixtures/soap_inbound_delete_lead.xml')) }
+    let(:example_params) { File.read('spec/fixtures/soap_inbound_delete_lead.xml') }
     subject { described_class.new }
 
     it "deletes a record with provided parameters" do

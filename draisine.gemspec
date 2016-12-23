@@ -27,7 +27,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "guard-rspec"
   spec.add_development_dependency "pry"
   spec.add_development_dependency "sqlite3"
-  spec.add_runtime_dependency 'actionpack-xml_parser'
   spec.add_runtime_dependency "rails", ">= 4.2"
   spec.add_runtime_dependency "databasedotcom", "~> 1.3"
 end
