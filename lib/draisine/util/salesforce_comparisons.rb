@@ -24,7 +24,7 @@ module Draisine
     def salesforce_cleanup(value)
       case value
       when String
-        value.encode("UTF-8", invalid: :replace, undef: :replace, replace: "?")
+        Draisine::Encoding.convert_to_utf_and_sanitize(value)
       else
         value
       end

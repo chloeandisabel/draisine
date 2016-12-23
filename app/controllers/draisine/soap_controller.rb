@@ -5,7 +5,7 @@ module Draisine
     before_filter :validate_ip
 
     def update
-      message = request.body.read
+      message = incoming_xml
       if Draisine.sync_soap_operations?
         Draisine::SoapUpdateJob.perform_now(message)
       else
@@ -16,7 +16,7 @@ module Draisine
     end
 
     def delete
-      message = request.body.read
+      message = incoming_xml
       if Draisine.sync_soap_operations?
         Draisine::SoapDeleteJob.perform_now(message)
       else
@@ -44,6 +44,10 @@ module Draisine
 </soapenv:Body>
 </soapenv:Envelope>
 EOF
+    end
+
+    def incoming_xml
+      Draisine::Encoding.convert_to_utf_and_sanitize(request.body.read)
     end
   end
 end
