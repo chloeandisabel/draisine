@@ -56,6 +56,15 @@ EOM
     @job_retry_attempts ||= 0
   end
 
+  def self.sync_soap_operations?
+    @sync_soap_operations = true if @sync_soap_operations.nil?
+    @sync_soap_operations
+  end
+
+  def self.sync_soap_operations=(value)
+    @sync_soap_operations = value
+  end
+
   def self.job_retry_attempts=(count)
     @job_retry_attempts = count
   end

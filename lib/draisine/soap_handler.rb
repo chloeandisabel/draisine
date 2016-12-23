@@ -17,7 +17,6 @@ module Draisine
         klass = Draisine.registry.find(type)
         klass.salesforce_on_inbound_update(sobject)
       end
-      xml_response
     rescue InvalidOrganizationError => e
       Draisine.invalid_organization_handler.call(message)
     end
@@ -32,20 +31,8 @@ module Draisine
         klass = Draisine.registry.find(type)
         klass.salesforce_on_inbound_delete(id)
       end
-      xml_response
     rescue InvalidOrganizationError => e
       Draisine.invalid_organization_handler.call(message)
-    end
-
-    def xml_response
-      <<-EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<soapenv:Body>
-<notificationsResponse><Ack>true</Ack></notificationsResponse>
-</soapenv:Body>
-</soapenv:Envelope>
-EOF
     end
 
     protected
