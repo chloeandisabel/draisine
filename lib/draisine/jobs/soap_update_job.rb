@@ -1,7 +1,7 @@
 module Draisine
   class SoapUpdateJob < Draisine::JobBase
     def _perform(message)
-      SoapHandler.update(message)
+      SoapHandler.new.update(message)
     end
   end
 end
