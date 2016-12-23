@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
   spec.name          = "draisine"
   spec.version       = Draisine::VERSION
   spec.authors       = ["Mark Abramov"]
-  spec.email         = ["markizko@gmail.com"]
+  spec.email         = ["mark.abramov@chloeandisabel.com"]
 
   spec.summary       = %q{Synchronization machinery for salesforce}
   spec.description   = %q{Bidirectional synchronization for salesforce / activerecord}
-  spec.homepage      = "https://github.com/markiz/draisine"
+  spec.homepage      = "https://github.com/chloeandisabel/draisine"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
