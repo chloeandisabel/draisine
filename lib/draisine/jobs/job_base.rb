@@ -33,6 +33,7 @@ module Draisine
     end
 
     def deserialize(job_data)
+      super
       @retry_attempt = job_data.fetch('_retry_attempt', 0)
     end
   end

@@ -2,6 +2,7 @@ require "active_support"
 require "active_support/core_ext"
 require "active_support/concern"
 require "active_job/base"
+require "ext/active_job"
 
 require "databasedotcom"
 require "ext/databasedotcom"
