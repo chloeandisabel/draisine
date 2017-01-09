@@ -44,7 +44,7 @@ module Draisine
       when String
         Hash.from_xml(message_xml)
       else
-        raise ArgumentError
+        fail ArgumentError, "unknown message type: #{message_xml.inspect}"
       end
     end
 
