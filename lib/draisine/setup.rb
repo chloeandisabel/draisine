@@ -44,6 +44,15 @@ EOM
     @job_error_handler = handler
   end
 
+  def self.poll_locally_updated_ids?
+    @poll_locally_updated_ids = true if @poll_locally_updated_ids.nil?
+    @poll_locally_updated_ids
+  end
+
+  def self.poll_locally_updated_ids=(value)
+    @poll_locally_updated_ids = value
+  end
+
   def self.sync_callback
     @sync_callback ||= proc {|type, salesforce_id, options| }
   end

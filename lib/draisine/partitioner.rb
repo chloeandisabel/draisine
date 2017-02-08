@@ -49,10 +49,15 @@ module Draisine
     protected
 
     def get_updated_ids(start_date, end_date)
-      mechanism.get_updated_ids(start_date, end_date) |
-        model_class
-          .where("updated_at >= ? AND updated_at <= ?", start_date, end_date)
-          .uniq.pluck(:salesforce_id).compact
+      updated_ids = mechanism.get_updated_ids(start_date, end_date)
+      if Draisine.poll_locally_updated_ids?
+        updated_ids |= model_class
+                         .where("updated_at >= ? AND updated_at <= ?", start_date, end_date)
+                         .uniq
+                         .pluck(:salesforce_id)
+                         .compact
+      end
+      updated_ids
     end
 
     def get_deleted_ids(start_date, end_date)
