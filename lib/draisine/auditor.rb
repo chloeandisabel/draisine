@@ -88,7 +88,7 @@ module Draisine
           type: :remote_record_missing_locally,
           salesforce_type: salesforce_object_name,
           salesforce_id: id,
-          remote_attributes: remote_records_map.fetch(id))
+          remote_attributes: remote_records_map.fetch(id, {}))
       end
 
       attr_list = model_class.salesforce_audited_attributes
